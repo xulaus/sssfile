@@ -1,0 +1,14 @@
+# Build Results
+**/*.exe
+**/*.dll
+**/*.a
+**/*.pyc
+
+# External Libraries
+ext/
+
+# CMake Files
+**/*.cmake
+CMakeCache.txt
+CMakeFiles
+Makefile

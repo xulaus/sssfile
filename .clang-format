@@ -1,0 +1,11 @@
+UseTab: Never
+IndentWidth: 4
+BreakBeforeBraces: Allman
+AllowShortIfStatementsOnASingleLine: false
+IndentCaseLabels: false
+ColumnLimit: 0
+Cpp11BracedListStyle: true
+MaxEmptyLinesToKeep: 1
+NamespaceIndentation: All
+AccessModifierOffset: -2
+AllowShortBlocksOnASingleLine: true
