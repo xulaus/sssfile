@@ -32,10 +32,13 @@ int SSSFile::to_i(const gsl::span<const char> string)
 
     int ret = 0;
     size_t start = 0;
-    int sign = 1;
-
     const char *i_str = string.data();
-    switch (i_str[0])
+
+    while(i_str[start] == ' ') { start++; }
+
+    // Find sign
+    int sign = 1;
+    switch (i_str[start])
     {
     case '-':
         sign = -1;
@@ -44,6 +47,7 @@ int SSSFile::to_i(const gsl::span<const char> string)
     default:
         break;
     }
+
     for (auto pos = start; pos < size; pos++)
     {
         char c = i_str[pos];
@@ -63,6 +67,8 @@ float SSSFile::to_f(const gsl::span<const char> string)
     float ret = 0;
     size_t start = 0;
     const char *const f_str = string.data();
+
+    while(f_str[start] == ' ') { start++; }
 
     // Find sign
     int sign = 1;

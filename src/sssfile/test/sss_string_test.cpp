@@ -41,6 +41,12 @@ TEST_CASE("Can convert span with explicit positive to integer", "[gsl_span to_i]
     REQUIRE(to_i(s) == 1230);
 }
 
+TEST_CASE("Can convert span padded with spaces to integer", "[gsl_span to_i]")
+{
+    auto s = gsl::span<const char>({' ', '1', '2', '3', '0'});
+    REQUIRE(to_i(s) == 1230);
+}
+
 TEST_CASE("Can convert simple span to float", "[gsl_span to_f]")
 {
     auto s = gsl::span<const char>({'1', '9', '3'});
@@ -110,5 +116,11 @@ TEST_CASE("Can convert positive 0 successfully to float", "[gsl_span to_f]")
 TEST_CASE("Can convert span with explicit positive to float", "[gsl_span to_f]")
 {
     auto s = gsl::span<const char>({'+', '1', '2', '3', '0'});
+    REQUIRE(to_f(s) == Approx(1230));
+}
+
+TEST_CASE("Can convert span padded with spaces to float", "[gsl_span to_f]")
+{
+    auto s = gsl::span<const char>({' ', '1', '2', '3', '0'});
     REQUIRE(to_f(s) == Approx(1230));
 }
