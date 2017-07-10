@@ -11,7 +11,11 @@ namespace SSSFile
         size_t size;
         size_t offset;
     };
-    std::unique_ptr<int[]> build_column_from_buffer(
+    std::unique_ptr<int[]> build_integer_column_from_buffer(
+        gsl::span<const char> buffer,
+        column_metadata column_details);
+
+    std::unique_ptr<double[]> build_float_column_from_buffer(
         gsl::span<const char> buffer,
         column_metadata column_details);
 }

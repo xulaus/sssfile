@@ -1,5 +1,6 @@
 #include <memory>
 #include <cstdio>
+#include <type_traits>
 
 #include "column_builder.h"
 #include "sss_string.h"
@@ -16,8 +17,24 @@ namespace SSSFile
         return buffer.length() / line_length;
     }
 
+    template <
+        class T,
+        typename = std::enable_if_t<std::is_signed<T>::value>
+    >
+    T to_number(gsl::span<const char> buffer) {
+        if(std::is_floating_point<T>::value)
+        {
+            return SSSFile::to_f(buffer);
+        }
+        else
+        {
+            return SSSFile::to_i(buffer);
+        }
+    }
+
+    template <class Numeric, typename = std::enable_if_t<std::is_arithmetic<Numeric>::value>>
     void fill_column(
-        int * array,
+        Numeric * array,
         gsl::span<const char> buffer,
         const column_metadata column_details)
     {
@@ -31,11 +48,20 @@ namespace SSSFile
         for(int i = 0; col_begin < buffer_length; i++, col_begin += column_details.line_length)
         {
             auto col = gsl::span<const char>(buffer.data() + col_begin, col_size);
-            array[i] = SSSFile::to_i(col);
+            array[i] = to_number<Numeric>(col);
         }
     }
 
-    std::unique_ptr<int[]> build_column_from_buffer(
+    std::unique_ptr<double[]> build_float_column_from_buffer(
+        gsl::span<const char> buffer,
+        const column_metadata column_details)
+    {
+        auto array = std::make_unique<double[]>(column_length(buffer, column_details));
+        fill_column<double>(array.get(), buffer, column_details);
+        return array;
+    };
+
+    std::unique_ptr<int[]> build_integer_column_from_buffer(
         gsl::span<const char> buffer,
         const column_metadata column_details)
     {

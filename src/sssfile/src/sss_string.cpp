@@ -3,6 +3,14 @@
 
 #include "sss_string.h"
 
+#ifdef assert
+  #import <stdexcept>
+  #undef assert
+  #define STR(x) #x
+  #define TO_STR(x) STR(x)
+  #define assert(x, ...) do{ if(!(x)) throw std::runtime_error("Assertion Failed!\n" __FILE__ ":" TO_STR(__LINE__) "\n\t" #x "\n" __VA_ARGS__); } while(false)
+#endif
+
 bool SSSFile::operator==(const SSSFile::string &a, const SSSFile::string &b)
 {
     if (a.length() != b.length())
@@ -51,6 +59,7 @@ int SSSFile::to_i(const gsl::span<const char> string)
     for (auto pos = start; pos < size; pos++)
     {
         char c = i_str[pos];
+        assert(c <= '9' && c >= '0');
         ret = ret * 10 + (c - '0');
     }
     return ret * sign;
@@ -72,7 +81,7 @@ float SSSFile::to_f(const gsl::span<const char> string)
 
     // Find sign
     int sign = 1;
-    switch (f_str[0])
+    switch (f_str[start])
     {
     case '-':
         sign = -1;

@@ -79,7 +79,7 @@ TEST_CASE("Can convert span with implicit positive matisa to float", "[gsl_span 
 
 TEST_CASE("Can convert span with explicit positive matisa to float", "[gsl_span to_f]")
 {
-    auto s = gsl::span<const char>({'.', '4', 'E', '2'});
+    auto s = gsl::span<const char>({'.', '4', 'E', '+', '2'});
     REQUIRE(to_f(s) == Approx(40.0));
 }
 
@@ -119,8 +119,14 @@ TEST_CASE("Can convert span with explicit positive to float", "[gsl_span to_f]")
     REQUIRE(to_f(s) == Approx(1230));
 }
 
-TEST_CASE("Can convert span padded with spaces to float", "[gsl_span to_f]")
+TEST_CASE("Can convert span with negative, padded with spaces to float", "[gsl_span to_f]")
 {
-    auto s = gsl::span<const char>({' ', '1', '2', '3', '0'});
+    auto s = gsl::span<const char>({' ', '-', '1', '2', '3', '0'});
+    REQUIRE(to_f(s) == Approx(-1230));
+}
+
+TEST_CASE("Can convert span with positive, padded with spaces to float", "[gsl_span to_f]")
+{
+    auto s = gsl::span<const char>({' ', '+', '1', '2', '3', '0'});
     REQUIRE(to_f(s) == Approx(1230));
 }
