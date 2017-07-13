@@ -20,7 +20,7 @@ TEST_CASE("Can convert into an integer column", "[to_i]")
 }
 
 
-TEST_CASE("Can convert into a float column", "[to_f]")
+TEST_CASE("Can convert into a double column", "[to_f]")
 {
     auto column_details = SSSFile::column_metadata{};
     column_details.line_length = 17;
@@ -34,7 +34,7 @@ TEST_CASE("Can convert into a float column", "[to_f]")
         column_details
     );
 
-    REQUIRE(col[0] == Approx(3.14159265358979));
-    REQUIRE(col[1] == Approx(0.2));
-    REQUIRE(col[2] == Approx(-3));
+    REQUIRE(col[0] == 3.14159265358979);
+    REQUIRE(col[1] == 0.2);
+    REQUIRE(col[2] == -3);
 }

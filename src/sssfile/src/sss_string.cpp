@@ -30,42 +30,8 @@ bool SSSFile::operator==(const SSSFile::string &a, const SSSFile::string &b)
     return true;
 }
 
-int SSSFile::to_i(const gsl::span<const char> string)
-{
-    const size_t size = string.length();
-    if (size == 0)
-    {
-        throw std::exception();
-    }
-
-    int ret = 0;
-    size_t start = 0;
-    const char *i_str = string.data();
-
-    while(i_str[start] == ' ') { start++; }
-
-    // Find sign
-    int sign = 1;
-    switch (i_str[start])
-    {
-    case '-':
-        sign = -1;
-    case '+':
-        start++;
-    default:
-        break;
-    }
-
-    for (auto pos = start; pos < size; pos++)
-    {
-        char c = i_str[pos];
-        assert(c <= '9' && c >= '0');
-        ret = ret * 10 + (c - '0');
-    }
-    return ret * sign;
-}
-
-float SSSFile::to_f(const gsl::span<const char> string)
+template<typename T, typename = std::enable_if_t<std::is_arithmetic<T>::value>>
+T to_numeric(const gsl::span<const char> string)
 {
     const size_t size = string.length();
     if (size == 0)
@@ -73,7 +39,7 @@ float SSSFile::to_f(const gsl::span<const char> string)
         return NAN;
     }
 
-    float ret = 0;
+    T ret = 0;
     size_t start = 0;
     const char *const f_str = string.data();
 
@@ -81,19 +47,22 @@ float SSSFile::to_f(const gsl::span<const char> string)
 
     // Find sign
     int sign = 1;
-    switch (f_str[start])
+    if(std::is_signed<T>::value)
     {
-    case '-':
-        sign = -1;
-    case '+':
-        start++;
-    default:
-        break;
+        switch (f_str[start])
+        {
+        case '-':
+            sign = -1;
+        case '+':
+            start++;
+        default:
+            break;
+        }
     }
 
     // Find whole number component
     auto pos = start;
-    for (; pos < size && f_str[pos] != 'E' && f_str[pos] != 'e' && f_str[pos] != '.';
+    for (; pos < size && (!std::is_floating_point<T>::value || ( f_str[pos] != 'E' && f_str[pos] != 'e' && f_str[pos] != '.'));
          pos++)
     {
         const char c = f_str[pos];
@@ -101,25 +70,38 @@ float SSSFile::to_f(const gsl::span<const char> string)
         ret = 10 * ret + (c - '0');
     }
 
-    // Find fractional component
-    if (f_str[pos] == '.')
+    if(std::is_floating_point<T>::value)
     {
-        pos += 1;
-        auto divisor = 1.0;
-        for (; pos < size && f_str[pos] != 'E' && f_str[pos] != 'e'; pos++)
+        // Find fractional component
+        if (f_str[pos] == '.')
         {
-            const char c = f_str[pos];
-            assert(c <= '9' && c >= '0');
-            divisor /= 10;
-            ret = ret + (c - '0') * divisor;
+            pos += 1;
+            T divisor = 1.0;
+            for (; pos < size && f_str[pos] != 'E' && f_str[pos] != 'e'; pos++)
+            {
+                const char c = f_str[pos];
+                assert(c <= '9' && c >= '0');
+                divisor /= 10;
+                ret = ret + (c - '0') * divisor;
+            }
         }
-    }
 
-    // Find mantisa
-    if (++pos < size)
-    {
-        auto mantisa = gsl::span<const char>(&(f_str[pos]), size - pos);
-        ret *= std::pow(10, to_i(mantisa));
+        // Find mantisa
+        if (++pos < size)
+        {
+            auto mantisa = gsl::span<const char>(&(f_str[pos]), size - pos);
+            ret *= std::pow(10, to_numeric<int>(mantisa));
+        }
     }
     return ret * sign;
 };
+
+int SSSFile::to_i(const gsl::span<const char> string)
+{
+    return to_numeric<int>(string);
+}
+
+double SSSFile::to_f(const gsl::span<const char> string)
+{
+    return to_numeric<double>(string);
+}

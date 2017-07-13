@@ -98,7 +98,7 @@ namespace SSSFile
     bool operator==(const SSSFile::string &a, const SSSFile::string &b);
 
     int to_i(const gsl::span<const char> string);
-    float to_f(const gsl::span<const char> string);
+    double to_f(const gsl::span<const char> string);
 } // namespace SSSFile
 
 namespace std
