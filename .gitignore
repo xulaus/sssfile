@@ -3,6 +3,7 @@
 **/*.dll
 **/*.a
 **/*.pyc
+build/
 
 # External Libraries
 ext/
