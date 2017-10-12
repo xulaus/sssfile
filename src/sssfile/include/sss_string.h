@@ -1,5 +1,5 @@
 #include <cstring>
-#include <gsl/gsl>
+#include <string_view>
 
 namespace SSSFile
 {
@@ -92,13 +92,13 @@ namespace SSSFile
             return const_cast<char *>(const_this->data());
         }
 
-        const auto get() const { return gsl::span<const char>(data(), length()); }
+        const auto get() const { return std::string_view (data(), length()); }
     };
 
     bool operator==(const SSSFile::string &a, const SSSFile::string &b);
 
-    int to_i(const gsl::span<const char> string);
-    double to_f(const gsl::span<const char> string);
+    int to_i(const std::string_view  string);
+    double to_f(const std::string_view  string);
 } // namespace SSSFile
 
 namespace std

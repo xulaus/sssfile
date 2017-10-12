@@ -1,15 +1,9 @@
 #include <cmath>
-#include <gsl/gsl>
+#include <string_view>
 
 #include "sss_string.h"
+#include "common.h"
 
-#ifdef assert
-  #import <stdexcept>
-  #undef assert
-  #define STR(x) #x
-  #define TO_STR(x) STR(x)
-  #define assert(x, ...) do{ if(!(x)) throw std::runtime_error("Assertion Failed!\n" __FILE__ ":" TO_STR(__LINE__) "\n\t" #x "\n" __VA_ARGS__); } while(false)
-#endif
 
 bool SSSFile::operator==(const SSSFile::string &a, const SSSFile::string &b)
 {
@@ -31,7 +25,7 @@ bool SSSFile::operator==(const SSSFile::string &a, const SSSFile::string &b)
 }
 
 template<typename T, typename = std::enable_if_t<std::is_arithmetic<T>::value>>
-T to_numeric(const gsl::span<const char> string)
+T to_numeric(const std::string_view& string)
 {
     const size_t size = string.length();
     if (size == 0)
@@ -70,7 +64,7 @@ T to_numeric(const gsl::span<const char> string)
         ret = 10 * ret + (c - '0');
     }
 
-    if(std::is_floating_point<T>::value)
+    if(std::is_floating_point<T>::value && pos < size)
     {
         // Find fractional component
         if (f_str[pos] == '.')
@@ -89,19 +83,19 @@ T to_numeric(const gsl::span<const char> string)
         // Find mantisa
         if (++pos < size)
         {
-            auto mantisa = gsl::span<const char>(&(f_str[pos]), size - pos);
+            auto mantisa = std::string_view (&(f_str[pos]), size - pos);
             ret *= std::pow(10, to_numeric<int>(mantisa));
         }
     }
     return ret * sign;
 };
 
-int SSSFile::to_i(const gsl::span<const char> string)
+int SSSFile::to_i(const std::string_view  string)
 {
     return to_numeric<int>(string);
 }
 
-double SSSFile::to_f(const gsl::span<const char> string)
+double SSSFile::to_f(const std::string_view  string)
 {
     return to_numeric<double>(string);
 }
