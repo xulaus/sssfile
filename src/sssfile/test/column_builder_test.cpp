@@ -13,7 +13,7 @@ TEST_CASE("Can convert into an integer column", "[to_i]")
     column_details.size = 2;
     column_details.offset = 1;
 
-    auto column_text = std::string_view { "-01\n+ 2\ns-3 " };
+    auto column_text = std::string_view { "-01\n+ 2\ns-3\n" };
 
     auto col = build_integer_column_from_buffer(column_text, column_details);
     REQUIRE(col[0] ==  1);
@@ -32,7 +32,7 @@ TEST_CASE("Can convert into a double column", "[to_f]")
     auto column_text = std::string_view {
         "3.14159265358979 "
         "            2E-1 "
-        "              -3 "
+        "              -3"
     };
 
     auto col = build_float_column_from_buffer(column_text, column_details);
