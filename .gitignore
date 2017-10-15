@@ -1,8 +1,10 @@
 # Build Results
-**/*.exe
-**/*.dll
-**/*.a
-**/*.pyc
+*.exe
+*.dll
+*.a
+*.pyc
+*.egg-info/
+__pycache__/
 build/
 
 # External Libraries
