@@ -12,7 +12,7 @@ char * load_file_into_buffer(char *name)
     FILE *file;
     if (!(file = fopen(name, "rb")))
     {
-        PyErr_SetString(NoSuchFileError, "Could not find file.");
+        PyErr_Format(NoSuchFileError, "Could not find file '%s'.", name);
         return NULL;
     }
 
@@ -36,7 +36,7 @@ char * load_file_into_buffer(char *name)
     return buffer;
 }
 
-static PyObject* from_file(PyObject *dummy, PyObject *args)
+static PyObject *from_file(PyObject *dummy, PyObject *args)
 {
     char *filepath=NULL;
     if (!PyArg_ParseTuple(args, "s", &filepath))
@@ -44,21 +44,22 @@ static PyObject* from_file(PyObject *dummy, PyObject *args)
         return NULL;
     }
 
-    char * buffer = load_file_into_buffer(filepath);
+    char *buffer = load_file_into_buffer(filepath);
     if(!buffer)
     {
         return  NULL;
     }
 
     puts(buffer);
+    free(buffer);
     npy_intp dims[1] = {1};
-    PyObject *arr1 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
-    if(!arr1)
+    PyObject *arr = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    if(!arr)
     {
         return NULL;
     }
 
-    return arr1;
+    return arr;
 }
 
 static struct PyMethodDef methods[] = {
@@ -68,10 +69,23 @@ static struct PyMethodDef methods[] = {
 
 PyMODINIT_FUNC initsssfile()
 {
-    Py_InitModule("sssfile", methods);
+    PyObject *module = NULL;
+    if(!(module = Py_InitModule("sssfile", methods)))
+    {
+        return;
+    }
+
+    PyObject *dict = NULL;
+    if(!(dict = PyModule_GetDict(module)))
+    {
+        return;
+    }
 
     NoSuchFileError = PyErr_NewException("sssfile.NoSuchFileError", NULL, NULL);
+    PyDict_SetItemString(dict, "NoSuchFileError", NoSuchFileError);
+
     OutOfMemoryError = PyErr_NewException("sssfile.OutOfMemoryError", NULL, NULL);
+    PyDict_SetItemString(dict, "OutOfMemoryError", OutOfMemoryError);
 
     import_array();
 }
