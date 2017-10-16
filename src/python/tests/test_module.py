@@ -11,6 +11,10 @@ def test_from_file_when_file_doesnt_exist():
         sssfile.from_file("file/path")
 
 
+def test_from_file_when_file_does_exist():
+    sssfile.from_file("tests/data/sss-2.0.xml")
+
+
 def test_oom_error_exists():
     assert issubclass(sssfile.OutOfMemoryError, Exception)
 

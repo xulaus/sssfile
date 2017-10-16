@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sss version="2.0">
+  <date>2017-10-15</date>
+  <time>19:57:07</time>
+  <origin>An Origin</origin>
+  <survey>
+    <title>SSS 2.0 Example</title>
+    <record ident="A" format="fixed">
+      <variable ident="00001" type="character">
+        <name>respondent_id</name>
+        <label>Respondent</label>
+        <size>3</size>
+        <position start="1" finish="3"/>
+      </variable>
+      <variable ident="00002" type="quantity">
+        <name>age</name>
+        <label>Age</label>
+        <size>3</size>
+        <position start="4" finish="6"/>
+      </variable>
+      <variable ident="00003" type="single">
+        <name>gender</name>
+        <label>Gender</label>
+        <size>1</size>
+        <position start="7" finish="7"/>
+        <values>
+          <value code="1">Male</value>
+          <value code="2">Female</value>
+        </values>
+      </variable>
+      <variable ident="0004" type="multiple">
+        <name>profession</name>
+        <label>Do you, or members of your household, work in the following sectors? Select all that apply.</label>
+        <size>6</size>
+        <position start="8" finish="14"/>
+        <values>
+          <value code="1">Dairy</value>
+          <value code="2">TV</value>
+          <value code="3">Radio</value>
+          <value code="4">Ads are often misleading</value>
+          <value code="5">There are some ads that I remember for a long time</value>
+          <value code="6">None of these</value>
+        </values>
+      </variable>
+    </record>
+  </survey>
+</sss>
