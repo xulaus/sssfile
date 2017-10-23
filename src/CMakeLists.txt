@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.9)
 
-set(CMAKE_CXX_FLAGS_DEBUG "-DDEBUG")
-
 if(NOT DEFINED CMAKE_INSTALL_LIBDIR)
    set(CMAKE_INSTALL_LIBDIR lib CACHE PATH "Output directory for libraries")
 endif()
