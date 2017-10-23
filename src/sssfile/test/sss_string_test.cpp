@@ -1,6 +1,6 @@
 #include "catch.hpp"
 
-#include "sss_string.h"
+#include "sssfile/sss_string.h"
 
 using namespace SSSFile;
 

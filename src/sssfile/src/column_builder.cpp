@@ -2,8 +2,8 @@
 #include <cstdio>
 #include <type_traits>
 
-#include "column_builder.h"
-#include "sss_string.h"
+#include "sssfile/column_builder.h"
+#include "sssfile/sss_string.h"
 
 #include "common.h"
 

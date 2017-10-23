@@ -1,7 +1,7 @@
 #include <string_view>
 #include "catch.hpp"
 
-#include "column_builder.h"
+#include "sssfile/column_builder.h"
 
 using namespace SSSFile;
 
