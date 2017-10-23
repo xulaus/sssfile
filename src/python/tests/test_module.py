@@ -12,7 +12,7 @@ def test_from_file_when_file_doesnt_exist():
 
 
 def test_from_file_when_file_does_exist():
-    sssfile.from_file("tests/data/sss-2.0.xml")
+    sssfile.from_file("tests/data/sss-2.0.dat")
 
 
 def test_no_such_file_error_exists():

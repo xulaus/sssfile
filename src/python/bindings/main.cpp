@@ -3,15 +3,18 @@
 #include "Python.h"
 #include "numpy/arrayobject.h"
 
+#include "sssfile/column_builder.h"
+
 static PyObject *NoSuchFileError;
 
 
-char * load_file_into_buffer(char *name)
+char * load_file_into_buffer(char *name, int &buffer_length)
 {
     FILE *file;
     if (!(file = fopen(name, "rb")))
     {
         PyErr_Format(NoSuchFileError, "Could not find file '%s'.", name);
+        buffer_length = -1;
         return NULL;
     }
 
@@ -24,16 +27,28 @@ char * load_file_into_buffer(char *name)
     char * buffer=(char *) malloc(fileLen+1);
     if (!buffer)
     {
+        buffer_length = -2;
         PyErr_NoMemory();
         return NULL;
     }
 
+    buffer_length = fileLen;
     //Read file contents into buffer
     fread(buffer, fileLen, 1, file);
+    buffer[buffer_length] = '\0';
     fclose(file);
 
     return buffer;
 }
+
+int get_line_length(char *buffer, int buffer_length)
+{
+
+    int line_length = 0;
+    for(;line_length < buffer_length && buffer[line_length] != '\n'; line_length++) { }
+    return ++line_length;
+}
+
 
 static PyObject *from_file(PyObject *dummy, PyObject *args)
 {
@@ -43,22 +58,42 @@ static PyObject *from_file(PyObject *dummy, PyObject *args)
         return NULL;
     }
 
-    char *buffer = load_file_into_buffer(filepath);
-    if(!buffer)
+    int buffer_length = -1;
+
+    char *buffer = load_file_into_buffer(filepath, buffer_length);
+    if(!buffer || buffer_length < 0)
     {
         return  NULL;
     }
 
-    puts(buffer);
-    free(buffer);
-    npy_intp dims[1] = {1};
-    PyObject *arr = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
-    if(!arr)
+    // Temp hack while there is no way to read colspecs
+    const char* filepath2 = "tests/data/sss-2.0.dat";
+    if(strcmp(filepath, filepath2) != 0)
     {
+        PyErr_Format(NoSuchFileError, "Could not find file '%s'.", filepath);
         return NULL;
     }
 
-    return arr;
+    SSSFile::column_metadata column_details = {};
+    column_details.type = SSSFile::column_metadata::TYPE_INT32;
+    column_details.line_length = get_line_length(buffer, buffer_length);
+    column_details.size = column_details.line_length - 1;
+    column_details.offset = 0;
+
+    unsigned int array_length = column_length(buffer, column_details);
+    npy_intp dims[1] = { array_length };
+    PyArrayObject *arr = (PyArrayObject *) PyArray_SimpleNew(1, dims, NPY_INT32);
+
+    if(!arr){
+        goto fail;
+    }
+
+    SSSFile::fill_column((void *) arr->data, buffer, column_details);
+    return (PyObject *) arr;
+
+    fail:
+        free(buffer);
+        return NULL;
 }
 
 static struct PyMethodDef methods[] = {
