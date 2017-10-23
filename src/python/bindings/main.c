@@ -4,7 +4,6 @@
 #include "numpy/arrayobject.h"
 
 static PyObject *NoSuchFileError;
-static PyObject *OutOfMemoryError;
 
 
 char * load_file_into_buffer(char *name)
@@ -25,7 +24,7 @@ char * load_file_into_buffer(char *name)
     char * buffer=(char *) malloc(fileLen+1);
     if (!buffer)
     {
-        PyErr_SetString(OutOfMemoryError, "Not enough memory to load in file");
+        PyErr_NoMemory();
         return NULL;
     }
 
@@ -83,9 +82,6 @@ PyMODINIT_FUNC initsssfile()
 
     NoSuchFileError = PyErr_NewException("sssfile.NoSuchFileError", NULL, NULL);
     PyDict_SetItemString(dict, "NoSuchFileError", NoSuchFileError);
-
-    OutOfMemoryError = PyErr_NewException("sssfile.OutOfMemoryError", NULL, NULL);
-    PyDict_SetItemString(dict, "OutOfMemoryError", OutOfMemoryError);
 
     import_array();
 }
