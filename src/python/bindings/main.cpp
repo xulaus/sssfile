@@ -7,6 +7,7 @@
 
 static PyObject *NoSuchFileError;
 static PyObject *FailedToConvert;
+static PyObject *UnknownTypeError;
 
 int load_file_into_buffer(char *name, char **buffer)
 {
@@ -72,7 +73,7 @@ PyArrayObject *load_column_from_buffer(const char *buffer, const SSSFile::column
 
     if (!dtype)
     {
-        // TODO: Proper error message
+        PyErr_SetString(UnknownTypeError, "Unknown Type");
         return NULL;
     }
 
@@ -151,6 +152,9 @@ PyMODINIT_FUNC initsssfile()
 
     FailedToConvert = PyErr_NewException("sssfile.FailedToConvert", NULL, NULL);
     PyDict_SetItemString(dict, "FailedToConvert", FailedToConvert);
+
+    UnknownTypeError = PyErr_NewException("sssfile.UnknownTypeError", NULL, NULL);
+    PyDict_SetItemString(dict, "UnknownTypeError", UnknownTypeError);
 
     import_array();
 }
