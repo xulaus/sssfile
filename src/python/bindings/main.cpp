@@ -79,18 +79,17 @@ static PyObject *from_file(PyObject *dummy, PyObject *args)
     npy_intp dims[1] = {array_length};
     PyArrayObject *arr = (PyArrayObject *)PyArray_SimpleNew(1, dims, NPY_INT32);
 
-    if (!arr)
+    if (arr)
+    {
+        SSSFile::fill_column((void *)arr->data, buffer, column_details);
+    }
+    else
     {
         PyErr_NoMemory();
-        goto fail;
     }
 
-    SSSFile::fill_column((void *)arr->data, buffer, column_details);
-    return (PyObject *)arr;
-
-fail:
     free(buffer);
-    return NULL;
+    return (PyObject *)arr;
 }
 
 static struct PyMethodDef methods[] = {{"from_file", from_file, METH_VARARGS, "descript of example"},
