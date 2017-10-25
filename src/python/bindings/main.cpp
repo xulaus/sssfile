@@ -7,14 +7,13 @@
 
 static PyObject *NoSuchFileError;
 
-char *load_file_into_buffer(char *name, int &buffer_length)
+int load_file_into_buffer(char *name, char **buffer)
 {
     FILE *file;
     if (!(file = fopen(name, "rb")))
     {
         PyErr_Format(NoSuchFileError, "Could not find file '%s'.", name);
-        buffer_length = -1;
-        return NULL;
+        return -1;
     }
 
     // Get file length
@@ -23,21 +22,18 @@ char *load_file_into_buffer(char *name, int &buffer_length)
     fseek(file, 0, SEEK_SET);
 
     // Allocate memory
-    char *buffer = (char *)malloc(fileLen + 1);
-    if (!buffer)
+    *buffer = (char *)malloc(fileLen + 1);
+    if (!*buffer)
     {
-        buffer_length = -2;
         PyErr_NoMemory();
-        return NULL;
+        return -2;
     }
-
-    buffer_length = fileLen;
     // Read file contents into buffer
-    fread(buffer, fileLen, 1, file);
-    buffer[buffer_length] = '\0';
+    fread(*buffer, fileLen, 1, file);
+    (*buffer)[fileLen] = '\0';
     fclose(file);
 
-    return buffer;
+    return fileLen;
 }
 
 int get_line_length(char *buffer, int buffer_length)
@@ -58,9 +54,8 @@ static PyObject *from_file(PyObject *dummy, PyObject *args)
         return NULL;
     }
 
-    int buffer_length = -1;
-
-    char *buffer = load_file_into_buffer(filepath, buffer_length);
+    char *buffer = NULL;
+    int buffer_length = load_file_into_buffer(filepath, &buffer);
     if (!buffer || buffer_length < 0)
     {
         return NULL;
