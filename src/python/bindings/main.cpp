@@ -7,8 +7,7 @@
 
 static PyObject *NoSuchFileError;
 
-
-char * load_file_into_buffer(char *name, int &buffer_length)
+char *load_file_into_buffer(char *name, int &buffer_length)
 {
     FILE *file;
     if (!(file = fopen(name, "rb")))
@@ -18,13 +17,13 @@ char * load_file_into_buffer(char *name, int &buffer_length)
         return NULL;
     }
 
-    //Get file length
+    // Get file length
     fseek(file, 0, SEEK_END);
-    unsigned long fileLen=ftell(file);
+    unsigned long fileLen = ftell(file);
     fseek(file, 0, SEEK_SET);
 
-    //Allocate memory
-    char * buffer=(char *) malloc(fileLen+1);
+    // Allocate memory
+    char *buffer = (char *)malloc(fileLen + 1);
     if (!buffer)
     {
         buffer_length = -2;
@@ -33,7 +32,7 @@ char * load_file_into_buffer(char *name, int &buffer_length)
     }
 
     buffer_length = fileLen;
-    //Read file contents into buffer
+    // Read file contents into buffer
     fread(buffer, fileLen, 1, file);
     buffer[buffer_length] = '\0';
     fclose(file);
@@ -45,14 +44,15 @@ int get_line_length(char *buffer, int buffer_length)
 {
 
     int line_length = 0;
-    for(;line_length < buffer_length && buffer[line_length] != '\n'; line_length++) { }
+    for (; line_length < buffer_length && buffer[line_length] != '\n'; line_length++)
+    {
+    }
     return ++line_length;
 }
 
-
 static PyObject *from_file(PyObject *dummy, PyObject *args)
 {
-    char *filepath=NULL;
+    char *filepath = NULL;
     if (!PyArg_ParseTuple(args, "s", &filepath))
     {
         return NULL;
@@ -61,14 +61,14 @@ static PyObject *from_file(PyObject *dummy, PyObject *args)
     int buffer_length = -1;
 
     char *buffer = load_file_into_buffer(filepath, buffer_length);
-    if(!buffer || buffer_length < 0)
+    if (!buffer || buffer_length < 0)
     {
-        return  NULL;
+        return NULL;
     }
 
     // Temp hack while there is no way to read colspecs
-    const char* filepath2 = "tests/data/sss-2.0.dat";
-    if(strcmp(filepath, filepath2) != 0)
+    const char *filepath2 = "tests/data/sss-2.0.dat";
+    if (strcmp(filepath, filepath2) != 0)
     {
         PyErr_Format(NoSuchFileError, "Could not find file '%s'.", filepath);
         return NULL;
@@ -81,36 +81,35 @@ static PyObject *from_file(PyObject *dummy, PyObject *args)
     column_details.offset = 0;
 
     unsigned int array_length = column_length(buffer, column_details);
-    npy_intp dims[1] = { array_length };
-    PyArrayObject *arr = (PyArrayObject *) PyArray_SimpleNew(1, dims, NPY_INT32);
+    npy_intp dims[1] = {array_length};
+    PyArrayObject *arr = (PyArrayObject *)PyArray_SimpleNew(1, dims, NPY_INT32);
 
-    if(!arr){
+    if (!arr)
+    {
         goto fail;
     }
 
-    SSSFile::fill_column((void *) arr->data, buffer, column_details);
-    return (PyObject *) arr;
+    SSSFile::fill_column((void *)arr->data, buffer, column_details);
+    return (PyObject *)arr;
 
-    fail:
-        free(buffer);
-        return NULL;
+fail:
+    free(buffer);
+    return NULL;
 }
 
-static struct PyMethodDef methods[] = {
-    {"from_file", from_file, METH_VARARGS, "descript of example"},
-    {NULL, NULL, 0, NULL}
-};
+static struct PyMethodDef methods[] = {{"from_file", from_file, METH_VARARGS, "descript of example"},
+                                       {NULL, NULL, 0, NULL}};
 
 PyMODINIT_FUNC initsssfile()
 {
     PyObject *module = NULL;
-    if(!(module = Py_InitModule("sssfile", methods)))
+    if (!(module = Py_InitModule("sssfile", methods)))
     {
         return;
     }
 
     PyObject *dict = NULL;
-    if(!(dict = PyModule_GetDict(module)))
+    if (!(dict = PyModule_GetDict(module)))
     {
         return;
     }
