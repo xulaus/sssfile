@@ -6,6 +6,7 @@
 #include "sssfile/column_builder.h"
 
 static PyObject *NoSuchFileError;
+static PyObject *FailedToConvert;
 
 int load_file_into_buffer(char *name, char **buffer)
 {
@@ -46,6 +47,53 @@ int get_line_length(char *buffer, int buffer_length)
     return ++line_length;
 }
 
+PyArrayObject *load_column_from_buffer(const char *buffer, const SSSFile::column_metadata &column_details)
+{
+    unsigned int array_length = column_length(buffer, column_details);
+    npy_intp dims[1] = {array_length};
+
+    PyArray_Descr *dtype = NULL;
+
+    switch (column_details.type)
+    {
+    case SSSFile::column_metadata::TYPE_UTF8:
+        dtype = PyArray_DescrNewFromType(NPY_STRING);
+        dtype->elsize = column_details.size;
+        break;
+    case SSSFile::column_metadata::TYPE_DOUBLE:
+        dtype = PyArray_DescrNewFromType(NPY_DOUBLE);
+        break;
+    case SSSFile::column_metadata::TYPE_INT32:
+        dtype = PyArray_DescrNewFromType(NPY_INT32);
+        break;
+    default:
+        break;
+    }
+
+    if (!dtype)
+    {
+        // TODO: Proper error message
+        return NULL;
+    }
+
+    PyArrayObject *arr = (PyArrayObject *)PyArray_SimpleNewFromDescr(1, dims, dtype);
+
+    if (!arr)
+    {
+        PyErr_NoMemory();
+        return NULL;
+    }
+
+    if (!SSSFile::fill_column((void *)arr->data, buffer, column_details))
+    {
+        Py_DECREF((PyObject *)arr);
+        PyErr_SetString(NoSuchFileError, "Failed to convert file");
+        return NULL;
+    }
+
+    return arr;
+}
+
 static PyObject *from_file(PyObject *dummy, PyObject *args)
 {
     char *filepath = NULL;
@@ -70,26 +118,15 @@ static PyObject *from_file(PyObject *dummy, PyObject *args)
     }
 
     SSSFile::column_metadata column_details = {};
-    column_details.type = SSSFile::column_metadata::TYPE_INT32;
+    column_details.type = SSSFile::column_metadata::TYPE_UTF8;
     column_details.line_length = get_line_length(buffer, buffer_length);
     column_details.size = column_details.line_length - 1;
     column_details.offset = 0;
 
-    unsigned int array_length = column_length(buffer, column_details);
-    npy_intp dims[1] = {array_length};
-    PyArrayObject *arr = (PyArrayObject *)PyArray_SimpleNew(1, dims, NPY_INT32);
-
-    if (arr)
-    {
-        SSSFile::fill_column((void *)arr->data, buffer, column_details);
-    }
-    else
-    {
-        PyErr_NoMemory();
-    }
+    PyObject *arr = (PyObject *)load_column_from_buffer(buffer, column_details);
 
     free(buffer);
-    return (PyObject *)arr;
+    return arr;
 }
 
 static struct PyMethodDef methods[] = {{"from_file", from_file, METH_VARARGS, "descript of example"},
@@ -111,6 +148,9 @@ PyMODINIT_FUNC initsssfile()
 
     NoSuchFileError = PyErr_NewException("sssfile.NoSuchFileError", NULL, NULL);
     PyDict_SetItemString(dict, "NoSuchFileError", NoSuchFileError);
+
+    FailedToConvert = PyErr_NewException("sssfile.FailedToConvert", NULL, NULL);
+    PyDict_SetItemString(dict, "FailedToConvert", FailedToConvert);
 
     import_array();
 }
