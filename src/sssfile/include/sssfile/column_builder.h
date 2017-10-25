@@ -11,7 +11,8 @@ namespace SSSFile
         {
             TYPE_NONE,
             TYPE_DOUBLE,
-            TYPE_INT32
+            TYPE_INT32,
+            TYPE_UTF8
         } type;
         size_t line_length;
         size_t size;

@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <cstring>
 #include <iostream>
 #include <memory>
 #include <type_traits>
@@ -27,22 +28,10 @@ namespace SSSFile
     template <class Numeric, typename = std::enable_if_t<std::is_arithmetic<Numeric>::value>>
     bool fill_column(Numeric *array, const std::string_view &buffer, const column_metadata &column_details)
     {
-        if (!validate_column(buffer, column_details))
-        {
-            return false;
-        }
-
         auto col_begin = column_details.offset;
-        const auto buffer_length = buffer.length();
         const auto line_length = column_details.line_length;
         const auto col_size = column_details.size;
-
-        if ((col_begin + col_size) > line_length)
-        {
-            // Line end must be after the end of the column
-            return false;
-        }
-
+        const auto buffer_length = buffer.length();
         for (int i = 0; col_begin < buffer_length; i++, col_begin += line_length)
         {
             const auto col = std::string_view(buffer.data() + col_begin, col_size);
@@ -54,15 +43,44 @@ namespace SSSFile
 
         return col_begin >= buffer_length;
     }
+    bool copy_from_column(int8_t *array, const std::string_view &buffer, const column_metadata &column_details)
+    {
+        auto col_begin = column_details.offset;
+        const auto line_length = column_details.line_length;
+        const auto col_size = column_details.size;
+        const auto buffer_length = buffer.length();
+        for (int i = 0; col_begin < buffer_length; i += col_size, col_begin += line_length)
+        {
+            std::memcpy(array + i, buffer.data() + col_begin, col_size);
+        }
+
+        return true;
+    }
 
     bool fill_column(void *array, const std::string_view &buffer, const column_metadata &column_details)
     {
+        if (!validate_column(buffer, column_details))
+        {
+            return false;
+        }
+
+        const auto col_begin = column_details.offset;
+        const auto line_length = column_details.line_length;
+        const auto col_size = column_details.size;
+
+        if ((col_begin + col_size) > line_length)
+        {
+            // Line end must be after the end of the column
+            return false;
+        }
         switch (column_details.type)
         {
         case column_metadata::TYPE_DOUBLE:
             return fill_column((double *)array, buffer, column_details);
         case column_metadata::TYPE_INT32:
             return fill_column((int32_t *)array, buffer, column_details);
+        case column_metadata::TYPE_UTF8:
+            return copy_from_column((int8_t *)array, buffer, column_details);
         }
         return false;
     }
