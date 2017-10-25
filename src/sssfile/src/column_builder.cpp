@@ -45,7 +45,7 @@ namespace SSSFile
 
         for (int i = 0; col_begin < buffer_length; i++, col_begin += line_length)
         {
-            const auto &col = std::string_view(buffer.data() + col_begin, col_size);
+            const auto col = std::string_view(buffer.data() + col_begin, col_size);
             if (!to_numeric(col, array[i]))
             {
                 break;
