@@ -85,7 +85,7 @@ PyArrayObject *load_column_from_buffer(const char *buffer, const SSSFile::column
         return NULL;
     }
 
-    if (!SSSFile::fill_column((void *)arr->data, buffer, column_details))
+    if (!SSSFile::fill_column(arr->data, buffer, column_details))
     {
         Py_DECREF((PyObject *)arr);
         PyErr_SetString(NoSuchFileError, "Failed to convert file");
