@@ -81,6 +81,7 @@ static PyObject *from_file(PyObject *dummy, PyObject *args)
 
     if (!arr)
     {
+        PyErr_NoMemory();
         goto fail;
     }
 
