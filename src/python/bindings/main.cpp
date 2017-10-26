@@ -57,6 +57,10 @@ PyArrayObject *load_column_from_buffer(const char *buffer, const SSSFile::column
 
     switch (column_details.type)
     {
+    case SSSFile::column_metadata::TYPE_UTF32:
+        dtype = PyArray_DescrNewFromType(NPY_UNICODE);
+        dtype->elsize = column_details.size << 2;
+        break;
     case SSSFile::column_metadata::TYPE_UTF8:
         dtype = PyArray_DescrNewFromType(NPY_STRING);
         dtype->elsize = column_details.size;
