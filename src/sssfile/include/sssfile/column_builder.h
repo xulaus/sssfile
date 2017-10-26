@@ -12,12 +12,17 @@ namespace SSSFile
             TYPE_NONE,
             TYPE_DOUBLE,
             TYPE_INT32,
-            TYPE_UTF8
+            TYPE_UTF8,
+            TYPE_UTF32
         } type;
         size_t line_length;
         size_t size;
         size_t offset;
     };
+
+    // HACK: Not appropriate here
+    int utf8_to_uft32(const std::string_view &buffer, size_t offset, int32_t &out);
+
     std::unique_ptr<int[]> build_integer_column_from_buffer(const std::string_view &buffer,
                                                             const column_metadata &column_details);
 

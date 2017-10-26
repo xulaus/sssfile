@@ -43,7 +43,9 @@ namespace SSSFile
 
         return col_begin >= buffer_length;
     }
-    bool copy_from_column(int8_t *array, const std::string_view &buffer, const column_metadata &column_details)
+
+
+    bool copy_from_column(int32_t *array, const std::string_view &buffer, const column_metadata &column_details)
     {
         auto col_begin = column_details.offset;
         const auto line_length = column_details.line_length;
@@ -52,6 +54,80 @@ namespace SSSFile
         for (int i = 0; col_begin < buffer_length; i += col_size, col_begin += line_length)
         {
             std::memcpy(array + i, buffer.data() + col_begin, col_size);
+        }
+
+        return true;
+    }
+
+    const int UTF8_seq_length[256] = {
+        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+        2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+        2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+        3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+        4,4,4,4,4,4,4,4,5,5,5,5,6,6,1,1
+    };
+
+
+    int utf8_to_uft32(const std::string_view &buffer, size_t offset, int32_t &out)
+    {
+        int i = offset;
+        unsigned char c = reinterpret_cast<const unsigned char&>(buffer[i]);
+        int seq_length = UTF8_seq_length[c];
+
+        if(buffer.length() < (i + seq_length))
+        {
+            return 0;
+        }
+
+        int32_t ret = buffer[i++] & ((1 << (8 - seq_length)) - 1);
+        while(--seq_length)
+        {
+            if((buffer[i] & 0xC0) != 0x80)
+            {
+                // overshoot or invalid UTF-8 tail
+                return 0;
+            }
+            ret = (ret << 6) | (buffer[i++] & 0x3F);
+        }
+        out = ret;
+        return i - offset;
+    }
+
+    bool cast_from_column(int32_t *array, const std::string_view &buffer, const column_metadata &column_details)
+    {
+        auto col_begin = column_details.offset;
+        const auto line_length = column_details.line_length;
+        const auto col_size = column_details.size;
+        const auto buffer_length = buffer.length();
+
+        for (int i = 0; col_begin < buffer_length; i += col_size, col_begin += line_length)
+        {
+            const auto col = std::string_view(buffer.data() + col_begin, col_size);
+            int current_code_point = 0;
+            for(int j = 0; j < col.length(); current_code_point++)
+            {
+                int converted = utf8_to_uft32(col, j, array[i + current_code_point]);
+                if(converted == 0)
+                {
+                    return false;
+                }
+                j += converted;
+            }
+            while(current_code_point < col_size)
+            {
+                array[i + current_code_point++] = 0;
+            }
         }
 
         return true;
@@ -79,10 +155,13 @@ namespace SSSFile
             return fill_column((double *)array, buffer, column_details);
         case column_metadata::TYPE_INT32:
             return fill_column((int32_t *)array, buffer, column_details);
+        case column_metadata::TYPE_UTF32:
+            return cast_from_column((int32_t *) array, buffer, column_details);
         case column_metadata::TYPE_UTF8:
-            return copy_from_column((int8_t *)array, buffer, column_details);
+             return copy_from_column((int32_t *)array, buffer, column_details);
+        default:
+            return false;
         }
-        return false;
     }
 
     std::unique_ptr<double[]> build_float_column_from_buffer(const std::string_view &buffer,
