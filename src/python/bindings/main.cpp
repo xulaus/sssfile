@@ -128,7 +128,7 @@ static PyObject *from_file(PyObject *dummy, PyObject *args)
     column_details.size = column_details.line_length - 1;
     column_details.offset = 0;
 
-    PyObject *arr = (PyObject *) load_column_from_buffer(buffer, column_details);
+    PyObject *arr = (PyObject *)load_column_from_buffer(buffer, column_details);
 
     free(buffer);
     return arr;

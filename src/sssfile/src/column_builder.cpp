@@ -1,13 +1,13 @@
 #include <cstdio>
 #include <cstring>
 #include <iostream>
-#include <type_traits>
 #include <string_view>
+#include <type_traits>
 
 #include "sssfile/column_builder.h"
 
-#include "utf_conversion.h"
 #include "common.h"
+#include "utf_conversion.h"
 
 namespace SSSFile
 {
@@ -38,7 +38,6 @@ namespace SSSFile
         return col_begin >= buffer_length;
     }
 
-
     bool copy_from_column(char *array, const std::string_view &buffer, const sss_column_metadata &column_details)
     {
         auto col_begin = column_details.offset;
@@ -64,16 +63,16 @@ namespace SSSFile
         {
             const auto col = std::string_view(buffer.data() + col_begin, col_size);
             int current_code_point = 0;
-            for(int j = 0; j < col.length(); current_code_point++)
+            for (int j = 0; j < col.length(); current_code_point++)
             {
                 int converted = utf8_to_uft32(col, j, array[i + current_code_point]);
-                if(converted == 0)
+                if (converted == 0)
                 {
                     return false;
                 }
                 j += converted;
             }
-            while(current_code_point < col_size)
+            while (current_code_point < col_size)
             {
                 array[i + current_code_point++] = 0;
             }
@@ -94,12 +93,10 @@ namespace SSSFile
         return column_length(std::string_view(buffer, length), column_details);
     }
 
-
     size_t column_length(const char *buffer, const sss_column_metadata &column_details)
     {
         return column_length(buffer, strlen(buffer), column_details);
     }
-
 
     bool fill_column(void *array, const std::string_view &buffer, const sss_column_metadata &column_details)
     {
@@ -124,9 +121,9 @@ namespace SSSFile
         case sss_column_metadata::TYPE_INT32:
             return fill_column((int32_t *)array, buffer, column_details);
         case sss_column_metadata::TYPE_UTF32:
-            return cast_from_column((int32_t *) array, buffer, column_details);
+            return cast_from_column((int32_t *)array, buffer, column_details);
         case sss_column_metadata::TYPE_UTF8:
-             return copy_from_column((char *)array, buffer, column_details);
+            return copy_from_column((char *)array, buffer, column_details);
         default:
             return false;
         }
