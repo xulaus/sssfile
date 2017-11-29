@@ -17,7 +17,7 @@ TEST_CASE("Can convert into an integer column", "[to_i]")
     auto column_text = "-01\n+ 2\ns-3\n";
 
     int col[3];
-    REQUIRE(fill_column((void *)col, column_text, column_details));
+    REQUIRE(fill_column_from_cstr((void *)col, column_text, column_details));
     CHECK(col[0] == 1);
     CHECK(col[1] == 2);
     CHECK(col[2] == -3);
@@ -36,7 +36,7 @@ TEST_CASE("Fails gracefully given floats", "[to_i]")
                        "              -3";
 
     int col[3];
-    REQUIRE_FALSE(fill_column((void *)col, column_text, column_details));
+    REQUIRE_FALSE(fill_column_from_cstr((void *)col, column_text, column_details));
 }
 
 TEST_CASE("Integer conversion fails gracefully given nonsense", "[to_i]")
@@ -50,7 +50,7 @@ TEST_CASE("Integer conversion fails gracefully given nonsense", "[to_i]")
     auto column_text = "-01\n+ 2\ns-d\n";
 
     int col[3];
-    REQUIRE_FALSE(fill_column((void *)col, column_text, column_details));
+    REQUIRE_FALSE(fill_column_from_cstr((void *)col, column_text, column_details));
 }
 
 TEST_CASE("Can convert into a double column", "[to_f]")
@@ -66,7 +66,7 @@ TEST_CASE("Can convert into a double column", "[to_f]")
                        "              -3";
 
     double col[3];
-    REQUIRE(fill_column((void *)col, column_text, column_details));
+    REQUIRE(fill_column_from_cstr((void *)col, column_text, column_details));
     CHECK(col[0] == 3.14159265358979);
     CHECK(col[1] == 0.2);
     CHECK(col[2] == -3);
@@ -85,7 +85,7 @@ TEST_CASE("Double Conversion fails gracefully given nonsense", "[to_f]")
                        "              -3";
 
     double col[3];
-    REQUIRE_FALSE(fill_column((void *)col, column_text, column_details));
+    REQUIRE_FALSE(fill_column_from_cstr((void *)col, column_text, column_details));
 }
 
 // HACK: Not appropriate here
@@ -115,7 +115,7 @@ TEST_CASE("UTF-8 to UTF-32 Column", "[encoding]")
         CHECK(ret == expected[i / 5 * 4]);
     }
 
-    REQUIRE(fill_column(result, column_text, column_details));
+    REQUIRE(fill_column_from_cstr(result, column_text, column_details));
     for (int i = 0; i < 20; i++)
     {
         CHECK(result[i] == expected[i]);

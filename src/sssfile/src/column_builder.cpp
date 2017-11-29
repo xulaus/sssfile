@@ -88,14 +88,14 @@ namespace SSSFile
         return (buffer.length() + no_new_line_at_end) / line_length;
     }
 
-    size_t column_length(const char *buffer, const size_t length, const sss_column_metadata &column_details)
+    size_t column_length_from_substr(const char *buffer, const size_t length, const sss_column_metadata &column_details)
     {
         return column_length(std::string_view(buffer, length), column_details);
     }
 
-    size_t column_length(const char *buffer, const sss_column_metadata &column_details)
+    size_t column_length_from_cstr(const char *buffer, const sss_column_metadata &column_details)
     {
-        return column_length(buffer, strlen(buffer), column_details);
+        return column_length_from_substr(buffer, strlen(buffer), column_details);
     }
 
     bool fill_column(void *array, const std::string_view &buffer, const sss_column_metadata &column_details)
@@ -129,13 +129,13 @@ namespace SSSFile
         }
     }
 
-    bool fill_column(void *array, const char *buffer, const size_t length, const sss_column_metadata &column_details)
+    bool fill_column_from_substr(void *array, const char *buffer, const size_t length, const sss_column_metadata &column_details)
     {
         return fill_column(array, std::string_view(buffer, length), column_details);
     }
 
-    bool fill_column(void *array, const char *buffer, const sss_column_metadata &column_details)
+    bool fill_column_from_cstr(void *array, const char *buffer, const sss_column_metadata &column_details)
     {
-        return fill_column(array, buffer, strlen(buffer), column_details);
+        return fill_column_from_substr(array, buffer, strlen(buffer), column_details);
     }
 }

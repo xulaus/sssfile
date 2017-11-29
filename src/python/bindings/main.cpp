@@ -50,7 +50,7 @@ int get_line_length(char *buffer, int buffer_length)
 
 PyArrayObject *load_column_from_buffer(const char *buffer, const SSSFile::sss_column_metadata &column_details)
 {
-    unsigned int array_length = column_length(buffer, column_details);
+    unsigned int array_length = column_length_from_cstr(buffer, column_details);
     npy_intp dims[1] = {array_length};
 
     PyArray_Descr *dtype = NULL;
@@ -89,7 +89,7 @@ PyArrayObject *load_column_from_buffer(const char *buffer, const SSSFile::sss_co
         return NULL;
     }
 
-    if (!SSSFile::fill_column(arr->data, buffer, column_details))
+    if (!SSSFile::fill_column_from_cstr(arr->data, buffer, column_details))
     {
         Py_DECREF((PyObject *)arr);
         PyErr_SetString(FailedToConvert, "Failed to convert file");
