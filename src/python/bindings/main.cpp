@@ -48,7 +48,7 @@ int get_line_length(char *buffer, int buffer_length)
     return ++line_length;
 }
 
-PyArrayObject *load_column_from_buffer(const char *buffer, const SSSFile::column_metadata &column_details)
+PyArrayObject *load_column_from_buffer(const char *buffer, const SSSFile::sss_column_metadata &column_details)
 {
     unsigned int array_length = column_length(buffer, column_details);
     npy_intp dims[1] = {array_length};
@@ -57,18 +57,18 @@ PyArrayObject *load_column_from_buffer(const char *buffer, const SSSFile::column
 
     switch (column_details.type)
     {
-    case SSSFile::column_metadata::TYPE_UTF32:
+    case SSSFile::sss_column_metadata::TYPE_UTF32:
         dtype = PyArray_DescrNewFromType(NPY_UNICODE);
         dtype->elsize = column_details.size << 2;
         break;
-    case SSSFile::column_metadata::TYPE_UTF8:
+    case SSSFile::sss_column_metadata::TYPE_UTF8:
         dtype = PyArray_DescrNewFromType(NPY_STRING);
         dtype->elsize = column_details.size;
         break;
-    case SSSFile::column_metadata::TYPE_DOUBLE:
+    case SSSFile::sss_column_metadata::TYPE_DOUBLE:
         dtype = PyArray_DescrNewFromType(NPY_DOUBLE);
         break;
-    case SSSFile::column_metadata::TYPE_INT32:
+    case SSSFile::sss_column_metadata::TYPE_INT32:
         dtype = PyArray_DescrNewFromType(NPY_INT32);
         break;
     default:
@@ -92,7 +92,7 @@ PyArrayObject *load_column_from_buffer(const char *buffer, const SSSFile::column
     if (!SSSFile::fill_column(arr->data, buffer, column_details))
     {
         Py_DECREF((PyObject *)arr);
-        PyErr_SetString(NoSuchFileError, "Failed to convert file");
+        PyErr_SetString(FailedToConvert, "Failed to convert file");
         return NULL;
     }
 
@@ -115,20 +115,20 @@ static PyObject *from_file(PyObject *dummy, PyObject *args)
     }
 
     // Temp hack while there is no way to read colspecs
-    const char *filepath2 = "tests/data/sss-2.0.dat";
-    if (strcmp(filepath, filepath2) != 0)
-    {
-        PyErr_Format(NoSuchFileError, "Could not find file '%s'.", filepath);
-        return NULL;
-    }
+    // const char *filepath2 = "tests/data/sss-2.0.dat";
+    // if (strcmp(filepath, filepath2) != 0)
+    // {
+    //     PyErr_Format(NoSuchFileError, "Could not find file '%s'.", filepath);
+    //     return NULL;
+    // }
 
-    SSSFile::column_metadata column_details = {};
-    column_details.type = SSSFile::column_metadata::TYPE_UTF8;
+    SSSFile::sss_column_metadata column_details = {};
+    column_details.type = SSSFile::sss_column_metadata::TYPE_UTF32;
     column_details.line_length = get_line_length(buffer, buffer_length);
     column_details.size = column_details.line_length - 1;
     column_details.offset = 0;
 
-    PyObject *arr = (PyObject *)load_column_from_buffer(buffer, column_details);
+    PyObject *arr = (PyObject *) load_column_from_buffer(buffer, column_details);
 
     free(buffer);
     return arr;

@@ -1,5 +1,7 @@
+file(GLOB sssfile_src "src/*.cpp" "src/*.h")
+
 project(libsssfile LANGUAGES CXX)
-add_library (sssfile src/column_builder.cpp)
+add_library (sssfile  ${sssfile_src})
 
 set_property(TARGET sssfile PROPERTY CXX_STANDARD 17)
 target_compile_definitions(sssfile PRIVATE EXPORTING)
@@ -17,7 +19,7 @@ install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 install(EXPORT SSSFileConfig DESTINATION share/SSSFile/cmake)
 export(TARGETS sssfile FILE SSSFileConfig.cmake)
 
-add_executable(test_sssfile test/main.cpp test/common_test.cpp test/column_builder_test.cpp src/column_builder.cpp)
+add_executable(test_sssfile test/main.cpp test/common_test.cpp test/column_builder_test.cpp ${sssfile_src})
 set_property(TARGET test_sssfile PROPERTY CXX_STANDARD 17)
 target_include_directories(test_sssfile PRIVATE include)
 

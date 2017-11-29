@@ -1,16 +1,17 @@
 #include <cstdio>
 #include <cstring>
 #include <iostream>
-#include <memory>
 #include <type_traits>
+#include <string_view>
 
 #include "sssfile/column_builder.h"
 
+#include "utf_conversion.h"
 #include "common.h"
 
 namespace SSSFile
 {
-    bool validate_column(const std::string_view &buffer, const column_metadata &column_details)
+    bool validate_column(const std::string_view &buffer, const sss_column_metadata &column_details)
     {
         // Need to consider that the last line may be one byte shorter (no \n)
         const auto no_new_line_at_end = (buffer[buffer.length() - 1] != '\n') ? 1 : 0;
@@ -18,15 +19,8 @@ namespace SSSFile
         return extra == 0;
     }
 
-    size_t column_length(const std::string_view &buffer, const column_metadata &column_details)
-    {
-        const auto no_new_line_at_end = (buffer[buffer.length() - 1] != '\n') ? 1 : 0;
-        const auto line_length = column_details.line_length;
-        return (buffer.length() + no_new_line_at_end) / line_length;
-    }
-
     template <class Numeric, typename = std::enable_if_t<std::is_arithmetic<Numeric>::value>>
-    bool fill_column(Numeric *array, const std::string_view &buffer, const column_metadata &column_details)
+    bool fill_column(Numeric *array, const std::string_view &buffer, const sss_column_metadata &column_details)
     {
         auto col_begin = column_details.offset;
         const auto line_length = column_details.line_length;
@@ -45,7 +39,7 @@ namespace SSSFile
     }
 
 
-    bool copy_from_column(int32_t *array, const std::string_view &buffer, const column_metadata &column_details)
+    bool copy_from_column(char *array, const std::string_view &buffer, const sss_column_metadata &column_details)
     {
         auto col_begin = column_details.offset;
         const auto line_length = column_details.line_length;
@@ -59,52 +53,7 @@ namespace SSSFile
         return true;
     }
 
-    const int UTF8_seq_length[256] = {
-        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-        2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
-        2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
-        3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
-        4,4,4,4,4,4,4,4,5,5,5,5,6,6,1,1
-    };
-
-
-    int utf8_to_uft32(const std::string_view &buffer, size_t offset, int32_t &out)
-    {
-        int i = offset;
-        unsigned char c = reinterpret_cast<const unsigned char&>(buffer[i]);
-        int seq_length = UTF8_seq_length[c];
-
-        if(buffer.length() < (i + seq_length))
-        {
-            return 0;
-        }
-
-        int32_t ret = buffer[i++] & ((1 << (8 - seq_length)) - 1);
-        while(--seq_length)
-        {
-            if((buffer[i] & 0xC0) != 0x80)
-            {
-                // overshoot or invalid UTF-8 tail
-                return 0;
-            }
-            ret = (ret << 6) | (buffer[i++] & 0x3F);
-        }
-        out = ret;
-        return i - offset;
-    }
-
-    bool cast_from_column(int32_t *array, const std::string_view &buffer, const column_metadata &column_details)
+    bool cast_from_column(int32_t *array, const std::string_view &buffer, const sss_column_metadata &column_details)
     {
         auto col_begin = column_details.offset;
         const auto line_length = column_details.line_length;
@@ -133,7 +82,26 @@ namespace SSSFile
         return true;
     }
 
-    bool fill_column(void *array, const std::string_view &buffer, const column_metadata &column_details)
+    size_t column_length(const std::string_view &buffer, const sss_column_metadata &column_details)
+    {
+        const auto no_new_line_at_end = (buffer[buffer.length() - 1] != '\n') ? 1 : 0;
+        const auto line_length = column_details.line_length;
+        return (buffer.length() + no_new_line_at_end) / line_length;
+    }
+
+    size_t column_length(const char *buffer, const size_t length, const sss_column_metadata &column_details)
+    {
+        return column_length(std::string_view(buffer, length), column_details);
+    }
+
+
+    size_t column_length(const char *buffer, const sss_column_metadata &column_details)
+    {
+        return column_length(buffer, strlen(buffer), column_details);
+    }
+
+
+    bool fill_column(void *array, const std::string_view &buffer, const sss_column_metadata &column_details)
     {
         if (!validate_column(buffer, column_details))
         {
@@ -151,45 +119,26 @@ namespace SSSFile
         }
         switch (column_details.type)
         {
-        case column_metadata::TYPE_DOUBLE:
+        case sss_column_metadata::TYPE_DOUBLE:
             return fill_column((double *)array, buffer, column_details);
-        case column_metadata::TYPE_INT32:
+        case sss_column_metadata::TYPE_INT32:
             return fill_column((int32_t *)array, buffer, column_details);
-        case column_metadata::TYPE_UTF32:
+        case sss_column_metadata::TYPE_UTF32:
             return cast_from_column((int32_t *) array, buffer, column_details);
-        case column_metadata::TYPE_UTF8:
-             return copy_from_column((int32_t *)array, buffer, column_details);
+        case sss_column_metadata::TYPE_UTF8:
+             return copy_from_column((char *)array, buffer, column_details);
         default:
             return false;
         }
     }
 
-    std::unique_ptr<double[]> build_float_column_from_buffer(const std::string_view &buffer,
-                                                             const column_metadata &column_details)
+    bool fill_column(void *array, const char *buffer, const size_t length, const sss_column_metadata &column_details)
     {
-        auto array = std::make_unique<double[]>(column_length(buffer, column_details));
+        return fill_column(array, std::string_view(buffer, length), column_details);
+    }
 
-        if (fill_column<double>(array.get(), buffer, column_details))
-        {
-            return array;
-        }
-        else
-        {
-            return nullptr;
-        }
-    };
-
-    std::unique_ptr<int[]> build_integer_column_from_buffer(const std::string_view &buffer,
-                                                            const column_metadata &column_details)
+    bool fill_column(void *array, const char *buffer, const sss_column_metadata &column_details)
     {
-        auto array = std::make_unique<int[]>(column_length(buffer, column_details));
-        if (fill_column(array.get(), buffer, column_details))
-        {
-            return array;
-        }
-        else
-        {
-            return nullptr;
-        }
-    };
+        return fill_column(array, buffer, strlen(buffer), column_details);
+    }
 }

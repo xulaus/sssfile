@@ -1,11 +1,9 @@
 #ifndef __SSSFILE_COLUMN_BUILDER_
 #define __SSSFILE_COLUMN_BUILDER_
 
-#include <string_view>
-
 namespace SSSFile
 {
-    struct column_metadata
+    struct sss_column_metadata
     {
         enum
         {
@@ -20,18 +18,14 @@ namespace SSSFile
         size_t offset;
     };
 
-    // HACK: Not appropriate here
-    int utf8_to_uft32(const std::string_view &buffer, size_t offset, int32_t &out);
+    bool fill_column(void *array, const char *buffer, const size_t length, const sss_column_metadata &column_details);
 
-    std::unique_ptr<int[]> build_integer_column_from_buffer(const std::string_view &buffer,
-                                                            const column_metadata &column_details);
+    bool fill_column(void *array, const char *buffer, const sss_column_metadata &column_details);
 
-    std::unique_ptr<double[]> build_float_column_from_buffer(const std::string_view &buffer,
-                                                             const column_metadata &column_details);
+    size_t column_length(const char *buffer, const size_t length, const sss_column_metadata &column_details);
 
-    bool fill_column(void *array, const std::string_view &buffer, const column_metadata &column_details);
+    size_t column_length(const char *buffer, const sss_column_metadata &column_details);
 
-    size_t column_length(const std::string_view &buffer, const column_metadata &column_details);
 }
 
 #endif
