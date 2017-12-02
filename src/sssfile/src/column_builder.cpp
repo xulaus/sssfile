@@ -20,7 +20,7 @@ namespace SSSFile
     }
 
     template <class Numeric, typename = std::enable_if_t<std::is_arithmetic<Numeric>::value>>
-    bool fill_column(Numeric *array, const std::string_view &buffer, const sss_column_metadata &column_details)
+    SSSError fill_column(Numeric *array, const std::string_view &buffer, const sss_column_metadata &column_details)
     {
         auto col_begin = column_details.offset;
         const auto line_length = column_details.line_length;
@@ -35,10 +35,10 @@ namespace SSSFile
             }
         }
 
-        return col_begin >= buffer_length;
+        return col_begin >= buffer_length ? SUCCESS : INVALID_NUMBER;
     }
 
-    bool copy_from_column(char *array, const std::string_view &buffer, const sss_column_metadata &column_details)
+    SSSError copy_from_column(char *array, const std::string_view &buffer, const sss_column_metadata &column_details)
     {
         auto col_begin = column_details.offset;
         const auto line_length = column_details.line_length;
@@ -49,10 +49,10 @@ namespace SSSFile
             std::memcpy(array + i, buffer.data() + col_begin, col_size);
         }
 
-        return true;
+        return SUCCESS;
     }
 
-    bool cast_from_column(int32_t *array, const std::string_view &buffer, const sss_column_metadata &column_details)
+    SSSError cast_from_column(int32_t *array, const std::string_view &buffer, const sss_column_metadata &column_details)
     {
         auto col_begin = column_details.offset;
         const auto line_length = column_details.line_length;
@@ -68,7 +68,7 @@ namespace SSSFile
                 int converted = utf8_to_uft32(col, j, array[i + current_code_point]);
                 if (converted == 0)
                 {
-                    return false;
+                    return INVALID_UTF8_STRING;
                 }
                 j += converted;
             }
@@ -78,7 +78,7 @@ namespace SSSFile
             }
         }
 
-        return true;
+        return SUCCESS;
     }
 
     size_t column_length(const std::string_view &buffer, const sss_column_metadata &column_details)
@@ -98,11 +98,11 @@ namespace SSSFile
         return column_length_from_substr(buffer, strlen(buffer), column_details);
     }
 
-    bool fill_column(void *array, const std::string_view &buffer, const sss_column_metadata &column_details)
+    SSSError fill_column(void *array, const std::string_view &buffer, const sss_column_metadata &column_details)
     {
         if (!validate_column(buffer, column_details))
         {
-            return false;
+            return BUFFER_WRONG_SIZE;
         }
 
         const auto col_begin = column_details.offset;
@@ -112,7 +112,7 @@ namespace SSSFile
         if ((col_begin + col_size) > line_length)
         {
             // Line end must be after the end of the column
-            return false;
+            return COLUMN_OVERLAPS_LINE_END;
         }
         switch (column_details.type)
         {
@@ -125,17 +125,17 @@ namespace SSSFile
         case sss_column_metadata::TYPE_UTF8:
             return copy_from_column((char *)array, buffer, column_details);
         default:
-            return false;
+            return UNKNOWN_TYPE;
         }
     }
 
-    bool fill_column_from_substr(void *array, const char *buffer, const size_t length,
+    SSSError fill_column_from_substr(void *array, const char *buffer, const size_t length,
                                  const sss_column_metadata &column_details)
     {
         return fill_column(array, std::string_view(buffer, length), column_details);
     }
 
-    bool fill_column_from_cstr(void *array, const char *buffer, const sss_column_metadata &column_details)
+    SSSError fill_column_from_cstr(void *array, const char *buffer, const sss_column_metadata &column_details)
     {
         return fill_column_from_substr(array, buffer, strlen(buffer), column_details);
     }

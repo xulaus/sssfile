@@ -1,4 +1,5 @@
 #include "stdlib.h"
+//#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 
 #include "Python.h"
 #include "numpy/arrayobject.h"
@@ -50,6 +51,8 @@ int get_line_length(char *buffer, int buffer_length)
 
 PyArrayObject *load_column_from_buffer(const char *buffer, const SSSFile::sss_column_metadata &column_details)
 {
+    auto error = SSSFile::SUCCESS;
+
     unsigned int array_length = column_length_from_cstr(buffer, column_details);
     npy_intp dims[1] = {array_length};
 
@@ -89,10 +92,10 @@ PyArrayObject *load_column_from_buffer(const char *buffer, const SSSFile::sss_co
         return NULL;
     }
 
-    if (!SSSFile::fill_column_from_cstr(arr->data, buffer, column_details))
+    if ((error = SSSFile::fill_column_from_cstr(arr->data, buffer, column_details)) != SSSFile::SUCCESS)
     {
         Py_DECREF((PyObject *)arr);
-        PyErr_SetString(FailedToConvert, "Failed to convert file");
+        PyErr_Format(FailedToConvert, "Failed to convert file! %s", SSSFile::get_error_message(error));
         return NULL;
     }
 
