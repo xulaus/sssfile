@@ -88,7 +88,7 @@ TEST_CASE("Double Conversion fails gracefully given nonsense", "[to_f]")
     REQUIRE_FALSE(fill_column_from_cstr((void *)col, column_text, column_details));
 }
 
-// HACK: Not appropriate here
+// @Hack : Not appropriate here
 TEST_CASE("UTF-8 to UTF-32 Column", "[encoding]")
 {
     auto column_details = sss_column_metadata{};

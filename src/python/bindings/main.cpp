@@ -114,14 +114,6 @@ static PyObject *from_file(PyObject *dummy, PyObject *args)
         return NULL;
     }
 
-    // Temp hack while there is no way to read colspecs
-    // const char *filepath2 = "tests/data/sss-2.0.dat";
-    // if (strcmp(filepath, filepath2) != 0)
-    // {
-    //     PyErr_Format(NoSuchFileError, "Could not find file '%s'.", filepath);
-    //     return NULL;
-    // }
-
     SSSFile::sss_column_metadata column_details = {};
     column_details.type = SSSFile::sss_column_metadata::TYPE_UTF32;
     column_details.line_length = get_line_length(buffer, buffer_length);

@@ -129,7 +129,8 @@ namespace SSSFile
         }
     }
 
-    bool fill_column_from_substr(void *array, const char *buffer, const size_t length, const sss_column_metadata &column_details)
+    bool fill_column_from_substr(void *array, const char *buffer, const size_t length,
+                                 const sss_column_metadata &column_details)
     {
         return fill_column(array, std::string_view(buffer, length), column_details);
     }
