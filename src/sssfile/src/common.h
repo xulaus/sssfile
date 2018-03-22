@@ -26,7 +26,7 @@
 
 namespace SSSFile
 {
-    template <typename T, typename = typename std::enable_if<std::is_arithmetic<T>::value>::type>
+    template<typename T, typename = typename std::enable_if<std::is_arithmetic<T>::value>::type>
     bool to_numeric(const std::string_view &string, T &out)
     {
         const size_t size = string.length();
@@ -50,19 +50,19 @@ namespace SSSFile
         {
             switch (f_str[start])
             {
-            case '-':
-                sign = -1;
-            case '+':
-                start++;
-            default:
-                break;
+                case '-':
+                    sign = -1;
+                case '+':
+                    start++;
+                default:
+                    break;
             }
         }
 
         // Find whole number component
         auto pos = start;
         for (; pos < size &&
-               (!std::is_floating_point<T>::value || (f_str[pos] != 'E' && f_str[pos] != 'e' && f_str[pos] != '.'));
+             (!std::is_floating_point<T>::value || (f_str[pos] != 'E' && f_str[pos] != 'e' && f_str[pos] != '.'));
              pos++)
         {
             const char c = f_str[pos];
@@ -103,5 +103,5 @@ namespace SSSFile
         out = ret * sign;
         return true;
     };
-}
+} // namespace SSSFile
 #endif

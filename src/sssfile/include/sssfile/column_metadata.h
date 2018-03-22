@@ -21,8 +21,7 @@ namespace SSSFile
         size_t size;
         size_t offset;
     };
-}
-
+} // namespace SSSFile
 
 #ifdef __cplusplus
 }

@@ -9,9 +9,8 @@ extern "C" {
 
 namespace SSSFile
 {
-    bool read_xml_from_substr(const char * buffer, const size_t length);
+    bool read_xml_from_substr(const char *buffer, const size_t length);
 }
-
 
 #ifdef __cplusplus
 }

@@ -24,5 +24,5 @@ TEST_CASE("XML READ", "[xml]")
                            "    </record>\n"
                            "  </survey>\n"
                            "</sss>\n\0";
-   REQUIRE(read_xml_from_substr(xmldata, static_strlen(xmldata)-1));
+    REQUIRE(read_xml_from_substr(xmldata, static_strlen(xmldata) - 1));
 }

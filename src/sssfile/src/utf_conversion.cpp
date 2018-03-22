@@ -37,4 +37,4 @@ namespace SSSFile
         out = ret;
         return i - offset;
     }
-}
+} // namespace SSSFile

@@ -17,7 +17,7 @@ TEST_CASE("Can convert into an integer column", "[to_i]")
     auto column_text = "-01\n+ 2\ns-3\n";
 
     int col[3];
-    REQUIRE(fill_column_from_cstr((void *)col, column_text, column_details) == SUCCESS);
+    REQUIRE(fill_column_from_cstr((void *) col, column_text, column_details) == SUCCESS);
     CHECK(col[0] == 1);
     CHECK(col[1] == 2);
     CHECK(col[2] == -3);
@@ -36,7 +36,7 @@ TEST_CASE("Fails gracefully given floats", "[to_i]")
                        "              -3";
 
     int col[3];
-    REQUIRE(fill_column_from_cstr((void *)col, column_text, column_details) == INVALID_NUMBER);
+    REQUIRE(fill_column_from_cstr((void *) col, column_text, column_details) == INVALID_NUMBER);
 }
 
 TEST_CASE("Integer conversion fails gracefully given nonsense", "[to_i]")
@@ -50,7 +50,7 @@ TEST_CASE("Integer conversion fails gracefully given nonsense", "[to_i]")
     auto column_text = "-01\n+ 2\ns-d\n";
 
     int col[3];
-    REQUIRE(fill_column_from_cstr((void *)col, column_text, column_details) == INVALID_NUMBER);
+    REQUIRE(fill_column_from_cstr((void *) col, column_text, column_details) == INVALID_NUMBER);
 }
 
 TEST_CASE("Can convert into a double column", "[to_f]")
@@ -66,7 +66,7 @@ TEST_CASE("Can convert into a double column", "[to_f]")
                        "              -3";
 
     double col[3];
-    REQUIRE(fill_column_from_cstr((void *)col, column_text, column_details) == SUCCESS);
+    REQUIRE(fill_column_from_cstr((void *) col, column_text, column_details) == SUCCESS);
     CHECK(col[0] == 3.14159265358979);
     CHECK(col[1] == 0.2);
     CHECK(col[2] == -3);
@@ -85,7 +85,7 @@ TEST_CASE("Double Conversion fails gracefully given nonsense", "[to_f]")
                        "              -3";
 
     double col[3];
-    REQUIRE(fill_column_from_cstr((void *)col, column_text, column_details) == INVALID_NUMBER);
+    REQUIRE(fill_column_from_cstr((void *) col, column_text, column_details) == INVALID_NUMBER);
 }
 
 // @Hack : Not appropriate here

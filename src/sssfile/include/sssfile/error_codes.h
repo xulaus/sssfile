@@ -18,8 +18,8 @@ namespace SSSFile
         SSSERROR_COUNT
     };
 
-    const char * get_error_message(SSSError error);
-}
+    const char *get_error_message(SSSError error);
+} // namespace SSSFile
 
 #ifdef __cplusplus
 }

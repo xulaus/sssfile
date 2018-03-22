@@ -1,9 +1,9 @@
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <string_view>
 #include <type_traits>
-#include <cstdlib>
 
 #include "sssfile/column_builder.h"
 
@@ -20,7 +20,7 @@ namespace SSSFile
         return extra == 0;
     }
 
-    template <class Numeric, typename = typename std::enable_if<std::is_arithmetic<Numeric>::value>::type>
+    template<class Numeric, typename = typename std::enable_if<std::is_arithmetic<Numeric>::value>::type>
     SSSError fill_column(Numeric *array, const std::string_view &buffer, const sss_column_metadata &column_details)
     {
         auto col_begin = column_details.offset;
@@ -117,21 +117,21 @@ namespace SSSFile
         }
         switch (column_details.type)
         {
-        case sss_column_metadata::TYPE_DOUBLE:
-            return fill_column((double *)array, buffer, column_details);
-        case sss_column_metadata::TYPE_INT32:
-            return fill_column((int32_t *)array, buffer, column_details);
-        case sss_column_metadata::TYPE_UTF32:
-            return cast_from_column((int32_t *)array, buffer, column_details);
-        case sss_column_metadata::TYPE_UTF8:
-            return copy_from_column((char *)array, buffer, column_details);
-        default:
-            return UNKNOWN_TYPE;
+            case sss_column_metadata::TYPE_DOUBLE:
+                return fill_column((double *) array, buffer, column_details);
+            case sss_column_metadata::TYPE_INT32:
+                return fill_column((int32_t *) array, buffer, column_details);
+            case sss_column_metadata::TYPE_UTF32:
+                return cast_from_column((int32_t *) array, buffer, column_details);
+            case sss_column_metadata::TYPE_UTF8:
+                return copy_from_column((char *) array, buffer, column_details);
+            default:
+                return UNKNOWN_TYPE;
         }
     }
 
     SSSError fill_column_from_substr(void *array, const char *buffer, const size_t length,
-                                 const sss_column_metadata &column_details)
+                                     const sss_column_metadata &column_details)
     {
         return fill_column(array, std::string_view(buffer, length), column_details);
     }
@@ -140,4 +140,4 @@ namespace SSSFile
     {
         return fill_column_from_substr(array, buffer, strlen(buffer), column_details);
     }
-}
+} // namespace SSSFile

@@ -25,7 +25,7 @@ int load_file_into_buffer(char *name, char **buffer)
     fseek(file, 0, SEEK_SET);
 
     // Allocate memory
-    *buffer = (char *)malloc(fileLen + 1);
+    *buffer = (char *) malloc(fileLen + 1);
     if (!*buffer)
     {
         PyErr_NoMemory();
@@ -41,7 +41,6 @@ int load_file_into_buffer(char *name, char **buffer)
 
 int get_line_length(char *buffer, int buffer_length)
 {
-
     int line_length = 0;
     for (; line_length < buffer_length && buffer[line_length] != '\n'; line_length++)
     {
@@ -60,22 +59,22 @@ PyArrayObject *load_column_from_buffer(const char *buffer, const SSSFile::sss_co
 
     switch (column_details.type)
     {
-    case SSSFile::sss_column_metadata::TYPE_UTF32:
-        dtype = PyArray_DescrNewFromType(NPY_UNICODE);
-        dtype->elsize = column_details.size << 2;
-        break;
-    case SSSFile::sss_column_metadata::TYPE_UTF8:
-        dtype = PyArray_DescrNewFromType(NPY_STRING);
-        dtype->elsize = column_details.size;
-        break;
-    case SSSFile::sss_column_metadata::TYPE_DOUBLE:
-        dtype = PyArray_DescrNewFromType(NPY_DOUBLE);
-        break;
-    case SSSFile::sss_column_metadata::TYPE_INT32:
-        dtype = PyArray_DescrNewFromType(NPY_INT32);
-        break;
-    default:
-        break;
+        case SSSFile::sss_column_metadata::TYPE_UTF32:
+            dtype = PyArray_DescrNewFromType(NPY_UNICODE);
+            dtype->elsize = column_details.size << 2;
+            break;
+        case SSSFile::sss_column_metadata::TYPE_UTF8:
+            dtype = PyArray_DescrNewFromType(NPY_STRING);
+            dtype->elsize = column_details.size;
+            break;
+        case SSSFile::sss_column_metadata::TYPE_DOUBLE:
+            dtype = PyArray_DescrNewFromType(NPY_DOUBLE);
+            break;
+        case SSSFile::sss_column_metadata::TYPE_INT32:
+            dtype = PyArray_DescrNewFromType(NPY_INT32);
+            break;
+        default:
+            break;
     }
 
     if (!dtype)
@@ -84,7 +83,7 @@ PyArrayObject *load_column_from_buffer(const char *buffer, const SSSFile::sss_co
         return NULL;
     }
 
-    PyArrayObject *arr = (PyArrayObject *)PyArray_SimpleNewFromDescr(1, dims, dtype);
+    PyArrayObject *arr = (PyArrayObject *) PyArray_SimpleNewFromDescr(1, dims, dtype);
 
     if (!arr)
     {
@@ -94,7 +93,7 @@ PyArrayObject *load_column_from_buffer(const char *buffer, const SSSFile::sss_co
 
     if ((error = SSSFile::fill_column_from_cstr(arr->data, buffer, column_details)) != SSSFile::SUCCESS)
     {
-        Py_DECREF((PyObject *)arr);
+        Py_DECREF((PyObject *) arr);
         PyErr_Format(FailedToConvert, "Failed to convert file! %s", SSSFile::get_error_message(error));
         return NULL;
     }
@@ -123,7 +122,7 @@ static PyObject *from_file(PyObject *dummy, PyObject *args)
     column_details.size = column_details.line_length - 1;
     column_details.offset = 0;
 
-    PyObject *arr = (PyObject *)load_column_from_buffer(buffer, column_details);
+    PyObject *arr = (PyObject *) load_column_from_buffer(buffer, column_details);
 
     free(buffer);
     return arr;
