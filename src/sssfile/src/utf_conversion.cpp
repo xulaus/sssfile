@@ -25,7 +25,7 @@ namespace SSSFile
         }
 
         int32_t ret = buffer[i++] & ((1 << (8 - seq_length)) - 1);
-        while (--seq_length)
+        while (--seq_length != 0u)
         {
             if ((buffer[i] & 0xC0) != 0x80)
             {

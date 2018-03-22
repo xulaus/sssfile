@@ -4,7 +4,7 @@
 
 using namespace SSSFile;
 
-template<size_t N> size_t static_strlen(const char (&)[N]) { return N; }
+template<size_t N> size_t static_strlen(const char (&/*unused*/)[N]) { return N; }
 TEST_CASE("XML READ", "[xml]")
 {
     const char xmldata[] = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"

@@ -118,13 +118,13 @@ namespace SSSFile
         switch (column_details.type)
         {
             case sss_column_metadata::TYPE_DOUBLE:
-                return fill_column((double *) array, buffer, column_details);
+                return fill_column(static_cast<double *>(array), buffer, column_details);
             case sss_column_metadata::TYPE_INT32:
-                return fill_column((int32_t *) array, buffer, column_details);
+                return fill_column(static_cast<int32_t *>(array), buffer, column_details);
             case sss_column_metadata::TYPE_UTF32:
-                return cast_from_column((int32_t *) array, buffer, column_details);
+                return cast_from_column(static_cast<int32_t *>(array), buffer, column_details);
             case sss_column_metadata::TYPE_UTF8:
-                return copy_from_column((char *) array, buffer, column_details);
+                return copy_from_column(static_cast<char *>(array), buffer, column_details);
             default:
                 return UNKNOWN_TYPE;
         }

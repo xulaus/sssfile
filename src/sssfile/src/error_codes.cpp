@@ -14,10 +14,10 @@ namespace SSSFile
 
     const char *get_error_message(SSSError error)
     {
-        auto index = (size_t) error;
-        if (error >= (size_t) SSSERROR_COUNT)
+        auto index = static_cast<size_t>(error);
+        if (error >= static_cast<size_t>(SSSERROR_COUNT))
         {
-            index = (size_t) SSSERROR_COUNT;
+            index = static_cast<size_t>(SSSERROR_COUNT);
         }
         return SSSError_messages[index];
     }
