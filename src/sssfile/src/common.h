@@ -22,10 +22,11 @@
 #endif
 
 #include <cmath>
+#include <string_view>
 
 namespace SSSFile
 {
-    template <typename T, typename = std::enable_if_t<std::is_arithmetic<T>::value>>
+    template <typename T, typename = typename std::enable_if<std::is_arithmetic<T>::value>::type>
     bool to_numeric(const std::string_view &string, T &out)
     {
         const size_t size = string.length();

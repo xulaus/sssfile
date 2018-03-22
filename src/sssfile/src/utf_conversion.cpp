@@ -15,9 +15,9 @@ namespace SSSFile
 
     int utf8_to_uft32(const std::string_view &buffer, size_t offset, int32_t &out)
     {
-        int i = offset;
+        size_t i = offset;
         unsigned char c = reinterpret_cast<const unsigned char &>(buffer[i]);
-        int seq_length = UTF8_seq_length[c];
+        size_t seq_length = UTF8_seq_length[c];
 
         if (buffer.length() < (i + seq_length))
         {

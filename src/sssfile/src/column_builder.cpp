@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string_view>
 #include <type_traits>
+#include <cstdlib>
 
 #include "sssfile/column_builder.h"
 
@@ -19,7 +20,7 @@ namespace SSSFile
         return extra == 0;
     }
 
-    template <class Numeric, typename = std::enable_if_t<std::is_arithmetic<Numeric>::value>>
+    template <class Numeric, typename = typename std::enable_if<std::is_arithmetic<Numeric>::value>::type>
     SSSError fill_column(Numeric *array, const std::string_view &buffer, const sss_column_metadata &column_details)
     {
         auto col_begin = column_details.offset;
@@ -59,11 +60,11 @@ namespace SSSFile
         const auto col_size = column_details.size;
         const auto buffer_length = buffer.length();
 
-        for (int i = 0; col_begin < buffer_length; i += col_size, col_begin += line_length)
+        for (size_t i = 0; col_begin < buffer_length; i += col_size, col_begin += line_length)
         {
             const auto col = std::string_view(buffer.data() + col_begin, col_size);
-            int current_code_point = 0;
-            for (int j = 0; j < col.length(); current_code_point++)
+            size_t current_code_point = 0;
+            for (size_t j = 0; j < col.length(); current_code_point++)
             {
                 int converted = utf8_to_uft32(col, j, array[i + current_code_point]);
                 if (converted == 0)
