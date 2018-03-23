@@ -48,7 +48,8 @@ int get_line_length(char *buffer, int buffer_length)
     return ++line_length;
 }
 
-PyArrayObject *load_column_from_buffer(const char *buffer, const SSSFile::sss_column_metadata &column_details)
+PyArrayObject *load_column_from_buffer(const char *buffer, int length,
+                                       const SSSFile::sss_column_metadata &column_details)
 {
     auto error = SSSFile::SUCCESS;
 
@@ -91,7 +92,7 @@ PyArrayObject *load_column_from_buffer(const char *buffer, const SSSFile::sss_co
         return NULL;
     }
 
-    if ((error = SSSFile::fill_column_from_cstr(arr->data, buffer, column_details)) != SSSFile::SUCCESS)
+    if ((error = SSSFile::fill_column_from_substr(arr->data, buffer, length, column_details)) != SSSFile::SUCCESS)
     {
         Py_DECREF((PyObject *) arr);
         PyErr_Format(FailedToConvert, "Failed to convert file! %s", SSSFile::get_error_message(error));
@@ -122,13 +123,34 @@ static PyObject *from_file(PyObject *dummy, PyObject *args)
     column_details.size = column_details.line_length - 1;
     column_details.offset = 0;
 
-    PyObject *arr = (PyObject *) load_column_from_buffer(buffer, column_details);
+    PyObject *arr = (PyObject *) load_column_from_buffer(buffer, buffer_length, column_details);
 
     free(buffer);
     return arr;
 }
 
-static struct PyMethodDef methods[] = {{"from_file", from_file, METH_VARARGS, "descript of example"},
+static PyObject *from_xmlfile(PyObject *dummy, PyObject *args)
+{
+    char *filepath = NULL;
+    if (!PyArg_ParseTuple(args, "s", &filepath))
+    {
+        return NULL;
+    }
+
+    char *buffer = NULL;
+    int buffer_length = load_file_into_buffer(filepath, &buffer);
+    if (!buffer || buffer_length < 0)
+    {
+        return NULL;
+    }
+
+    SSSFile::read_xml_from_substr(buffer, buffer_length);
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static struct PyMethodDef methods[] = {{"from_file", from_file, METH_VARARGS, ""},
+                                       {"from_xmlfile", from_xmlfile, METH_VARARGS, ""},
                                        {NULL, NULL, 0, NULL}};
 
 PyMODINIT_FUNC initsssfile()
