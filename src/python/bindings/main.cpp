@@ -5,6 +5,7 @@
 #include "numpy/arrayobject.h"
 
 #include "sssfile/column_builder.h"
+#include "sssfile/metadata_reader.h"
 
 static PyObject *NoSuchFileError;
 static PyObject *FailedToConvert;

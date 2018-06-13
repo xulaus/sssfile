@@ -27,4 +27,13 @@ def test_from_file_when_file_does_exist():
     sssfile.from_file("tests/data/sss-2.0.dat")
 
 
+def test_from_xmlfile_when_file_doesnt_exist():
+    with pytest.raises(sssfile.NoSuchFileError):
+        sssfile.from_xmlfile("file/path")
+
+
+def test_from_xmlfile_when_file_does_exist():
+    sssfile.from_xmlfile("tests/data/sss-2.0.xml")
+
+
 
