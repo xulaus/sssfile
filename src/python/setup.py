@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
+import setuptools
+import numpy as np
 
 from distutils.core import setup, Extension
-import numpy as np
 
 EXT_MODULES = [Extension(
     'sssfile',

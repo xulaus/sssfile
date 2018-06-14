@@ -15,4 +15,6 @@ find_package(Catch REQUIRED)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CATCH_CMAKE_DIR})
 enable_testing()
+
 add_subdirectory (sssfile)
+add_subdirectory (python)
