@@ -146,6 +146,7 @@ static PyObject *from_xmlfile(PyObject *dummy, PyObject *args)
     }
 
     SSSFile::read_xml_from_substr(buffer, buffer_length);
+    free(buffer);
     Py_INCREF(Py_None);
     return Py_None;
 }
