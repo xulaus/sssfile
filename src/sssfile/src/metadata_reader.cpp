@@ -57,45 +57,37 @@ namespace SSSFile
 
     bool read_xml_from_substr(const char *const_buffer, const size_t length)
     {
-        auto *buffer = static_cast<char *>(malloc(sizeof(char) * length));
-        try
+        auto *buffer = static_cast<char *>(malloc(sizeof(char) * (length + 1)));
+        rapidxml::xml_document<> doc;
+        if (buffer == nullptr)
         {
-            rapidxml::xml_document<> doc;
-            if (buffer == nullptr)
-            {
-                return false;
-            }
-            // @TODO RapidXML has non modifying version. we should use that
-            memcpy(buffer, const_buffer, length);
-
-            doc.parse<0>(buffer);
-
-            auto envelope = doc.first_node("sss");
-            auto root_node = envelope != nullptr ? envelope->first_node("survey") : nullptr;
-            auto record = root_node != nullptr ? root_node->first_node("record") : nullptr;
-            if (record == nullptr)
-            {
-                free(buffer);
-                return false;
-            }
-
-            for (auto variable = record->first_node("variable"); variable != nullptr;
-                 variable = variable->next_sibling())
-            {
-                sss_column_metadata col{};
-                if (!column_from_xml(*variable, col))
-                {
-                    free(buffer);
-                    return false;
-                }
-            }
-            free(buffer);
-            return true;
+            return false;
         }
-        catch (std::exception &e)
+        // @TODO RapidXML has non modifying version. we should use that
+        memcpy(buffer, const_buffer, length);
+        buffer[length] = '\0';
+
+        doc.parse<0>(buffer);
+
+        auto envelope = doc.first_node("sss");
+        auto root_node = envelope != nullptr ? envelope->first_node("survey") : nullptr;
+        auto record = root_node != nullptr ? root_node->first_node("record") : nullptr;
+        if (record == nullptr)
         {
             free(buffer);
             return false;
         }
+
+        for (auto variable = record->first_node("variable"); variable != nullptr; variable = variable->next_sibling())
+        {
+            sss_column_metadata col{};
+            if (!column_from_xml(*variable, col))
+            {
+                free(buffer);
+                return false;
+            }
+        }
+        free(buffer);
+        return true;
     }
 } // namespace SSSFile
