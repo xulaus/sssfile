@@ -181,7 +181,7 @@ TEST_CASE("Can convert span with explicit positive to float", "[string_view][to_
     REQUIRE(ret == 1230);
 }
 
-TEST_CASE("Can convert span with negative, padded with spaces to float", "[string_view][to_f]")
+TEST_CASE("Can convert span with negative padded with spaces to float", "[string_view][to_f]")
 {
     auto s = std::string_view{" -1230"};
     double ret = INT_MAX;
@@ -189,7 +189,7 @@ TEST_CASE("Can convert span with negative, padded with spaces to float", "[strin
     REQUIRE(ret == -1230);
 }
 
-TEST_CASE("Can convert span with positive, padded with spaces to float", "[string_view][to_f]")
+TEST_CASE("Can convert span with positive padded with spaces to float", "[string_view][to_f]")
 {
     auto s = std::string_view{" +1230"};
     double ret = INT_MAX;
