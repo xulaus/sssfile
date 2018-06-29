@@ -9,7 +9,16 @@ extern "C" {
 
 namespace SSSFile
 {
-    bool read_xml_from_substr(const char *const_buffer, const size_t length);
+    struct column_iterator;
+    bool xml_file_to_column_iterator(const char *const_buffer, const size_t length, column_iterator **iter);
+    void free_column_iterator(column_iterator *iter);
+    bool next_column(column_iterator *iter);
+
+    int find_column_label(column_iterator *iter, char *buffer, size_t length);
+    int find_column_name(column_iterator *iter, char *buffer, size_t length);
+    int find_column_ident(column_iterator *iter, char *buffer, size_t length);
+
+    bool find_column_details(column_iterator *iter, sss_column_metadata *column);
 }
 
 #ifdef __cplusplus

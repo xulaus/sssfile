@@ -108,7 +108,7 @@ namespace SSSFile
         else if (strcmp("multiple", type->value()) == 0)
         {
             printf("Variable '%s' is multiple select. These are not currently supported\n", name);
-            return false;
+            return true;
         }
         else
         {
@@ -117,39 +117,115 @@ namespace SSSFile
         }
     }
 
-    bool read_xml_from_substr(const char *const_buffer, const size_t length)
+    struct column_iterator
     {
-        auto *buffer = static_cast<char *>(malloc(sizeof(char) * (length + 1)));
-        rapidxml::xml_document<> doc;
-        if (buffer == nullptr)
+        rapidxml::xml_document<> document;
+        rapidxml::xml_node<> *cur_variable;
+        char *xml_string_buffer;
+    };
+
+    void free_column_iterator(column_iterator *iter)
+    {
+        if (iter)
         {
+            if (iter->xml_string_buffer)
+                free(iter->xml_string_buffer);
+            free(iter);
+        }
+    }
+
+    bool xml_file_to_column_iterator(const char *const_buffer, const size_t length, column_iterator **iter_ptr)
+    {
+        if (!iter_ptr)
+            return false;
+
+        column_iterator *iter = static_cast<column_iterator *>(malloc(sizeof(column_iterator)));
+        if (!iter)
+        {
+            printf("OOM!\n");
             return false;
         }
+
+        iter->cur_variable = nullptr;
+        iter->xml_string_buffer = static_cast<char *>(malloc(sizeof(char) * (length + 1)));
+        if (iter->xml_string_buffer == nullptr)
+        {
+            printf("OOM!\n");
+            free_column_iterator(iter);
+            return false;
+        }
+
         // @TODO RapidXML has non modifying version. we should use that
-        memcpy(buffer, const_buffer, length);
-        buffer[length] = '\0';
+        memcpy(iter->xml_string_buffer, const_buffer, length);
+        iter->xml_string_buffer[length] = '\0';
+        iter->document.parse<0>(iter->xml_string_buffer);
 
-        doc.parse<0>(buffer);
-
-        auto envelope = doc.first_node("sss");
+        auto envelope = iter->document.first_node("sss");
         auto root_node = envelope != nullptr ? envelope->first_node("survey") : nullptr;
         auto record = root_node != nullptr ? root_node->first_node("record") : nullptr;
+
         if (record == nullptr)
         {
-            free(buffer);
+            printf("No Record!\n");
+            free_column_iterator(iter);
             return false;
         }
 
-        for (auto variable = record->first_node("variable"); variable != nullptr; variable = variable->next_sibling())
-        {
-            sss_column_metadata col{};
-            if (!column_from_xml(*variable, col))
-            {
-                free(buffer);
-                return false;
-            }
-        }
-        free(buffer);
+        iter->cur_variable = record->first_node("variable");
+        *iter_ptr = iter;
         return true;
+    }
+
+    int find_column_label(column_iterator *iter, char *buffer, size_t length)
+    {
+        auto label_node = iter->cur_variable->first_node("label");
+        if (label_node)
+        {
+            return strlcpy(buffer, label_node->value(), length);
+        }
+        else
+        {
+            return -1;
+        }
+    }
+
+    int find_column_name(column_iterator *iter, char *buffer, size_t length)
+    {
+        auto name_node = iter->cur_variable->first_node("name");
+        if (name_node)
+        {
+            return strlcpy(buffer, name_node->value(), length);
+        }
+        else
+        {
+            return -1;
+        }
+    }
+
+    int find_column_ident(column_iterator *iter, char *buffer, size_t length)
+    {
+        auto ident_attr = iter->cur_variable->first_attribute("ident");
+        if (ident_attr)
+        {
+            return strlcpy(buffer, ident_attr->value(), length);
+        }
+        else
+        {
+            return -1;
+        }
+    }
+
+    bool find_column_details(column_iterator *iter, sss_column_metadata *col)
+    {
+        bool bad_args = !iter || !col;
+        return !bad_args && column_from_xml(*iter->cur_variable, *col);
+    }
+
+    bool next_column(column_iterator *iter)
+    {
+        if (!iter || !iter->cur_variable)
+            return false;
+        iter->cur_variable = iter->cur_variable->next_sibling();
+        return iter->cur_variable != nullptr;
     }
 } // namespace SSSFile

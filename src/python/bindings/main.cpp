@@ -145,7 +145,33 @@ static PyObject *from_xmlfile(PyObject *dummy, PyObject *args)
         return NULL;
     }
 
-    SSSFile::read_xml_from_substr(buffer, buffer_length);
+    SSSFile::column_iterator *iter = NULL;
+    SSSFile::xml_file_to_column_iterator(buffer, buffer_length, &iter);
+    if (!iter)
+    {
+        printf("Failed to load XML file\n");
+        return NULL;
+    }
+
+    do
+    {
+        SSSFile::sss_column_metadata column_details;
+        if (find_column_details(iter, &column_details))
+        {
+            char buf[255];
+            auto length = find_column_name(iter, buf, 255);
+            if (length > 0)
+            {
+                printf("'%.*s' is size %d\n", length, buf, column_details.size);
+            }
+            else
+            {
+                printf("Unnamed column is size %d\n", length, buf, column_details.size);
+            }
+        }
+    } while (SSSFile::next_column(iter));
+
+    SSSFile::free_column_iterator(iter);
     free(buffer);
     Py_INCREF(Py_None);
     return Py_None;

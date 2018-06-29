@@ -5,6 +5,7 @@
 using namespace SSSFile;
 
 template<size_t N> size_t static_strlen(const char (&/*unused*/)[N]) { return N; }
+
 TEST_CASE("XML READ", "[xml]")
 {
     const char xmldata[] = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
@@ -24,5 +25,6 @@ TEST_CASE("XML READ", "[xml]")
                            "    </record>\n"
                            "  </survey>\n"
                            "</sss>\n\0";
-    REQUIRE(read_xml_from_substr(xmldata, static_strlen(xmldata) - 1));
+    column_iterator *iter = nullptr;
+    REQUIRE(xml_file_to_column_iterator(xmldata, static_strlen(xmldata) - 1, &iter));
 }
