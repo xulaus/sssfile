@@ -60,6 +60,22 @@ namespace SSSFile
         return true;
     }
 
+    bool parse_single_column(const char *variable_name, rapidxml::xml_node<> &variable, sss_column_metadata &column)
+    {
+        auto position = variable.first_node("position");
+
+        unsigned int start, end;
+        if (!unpack_position_node(variable_name, position, start, end))
+        {
+            return false;
+        }
+
+        column.offset = start;
+        column.size = end - start;
+        column.type = sss_column_metadata::TYPE_INT32;
+        return true;
+    }
+
     bool column_from_xml(rapidxml::xml_node<> &variable, sss_column_metadata &column)
     {
         auto name_node = variable.first_node("name");
@@ -84,6 +100,15 @@ namespace SSSFile
         else if (strcmp("quantity", type->value()) == 0)
         {
             return parse_quantity_column(name, variable, column);
+        }
+        else if (strcmp("single", type->value()) == 0)
+        {
+            return parse_quantity_column(name, variable, column);
+        }
+        else if (strcmp("multiple", type->value()) == 0)
+        {
+            printf("Variable '%s' is multiple select. These are not currently supported\n", name);
+            return false;
         }
         else
         {
