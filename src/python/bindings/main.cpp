@@ -4,6 +4,10 @@
 #include "Python.h"
 #include "numpy/arrayobject.h"
 
+#if PY_MAJOR_VERSION >= 3
+#define IS_PY3K
+#endif
+
 #include "sssfile/column_builder.h"
 #include "sssfile/metadata_reader.h"
 
@@ -52,7 +56,7 @@ int get_line_length(char *buffer, int buffer_length)
 PyArrayObject *load_column_from_buffer(const char *buffer, int length,
                                        const SSSFile::sss_column_metadata &column_details)
 {
-    auto error = SSSFile::SUCCESS;
+    SSSFile::SSSError error = SSSFile::SUCCESS;
 
     unsigned int array_length = column_length_from_cstr(buffer, column_details);
     npy_intp dims[1] = {array_length};
@@ -159,14 +163,14 @@ static PyObject *from_xmlfile(PyObject *dummy, PyObject *args)
         if (find_column_details(iter, &column_details))
         {
             char buf[255];
-            auto length = find_column_name(iter, buf, 255);
+            size_t length = find_column_name(iter, buf, 255);
             if (length > 0)
             {
-                printf("'%.*s' is size %d\n", length, buf, column_details.size);
+                printf("'%.*s' is size %lu\n", (int) length, buf, column_details.size);
             }
             else
             {
-                printf("Unnamed column is size %d\n", length, buf, column_details.size);
+                printf("Unnamed column is size %lu\n", column_details.size);
             }
         }
     } while (SSSFile::next_column(iter));
@@ -181,18 +185,20 @@ static struct PyMethodDef methods[] = {{"from_file", from_file, METH_VARARGS, ""
                                        {"from_xmlfile", from_xmlfile, METH_VARARGS, ""},
                                        {NULL, NULL, 0, NULL}};
 
-PyMODINIT_FUNC initsssfile()
+static struct PyModuleDef moduledef = {PyModuleDef_HEAD_INIT, "sssfile", NULL, 0, methods, NULL, NULL, NULL, NULL};
+
+PyMODINIT_FUNC PyInit_sssfile()
 {
     PyObject *module = NULL;
-    if (!(module = Py_InitModule("sssfile", methods)))
+    if (!(module = PyModule_Create(&moduledef)))
     {
-        return;
+        return NULL;
     }
 
     PyObject *dict = NULL;
     if (!(dict = PyModule_GetDict(module)))
     {
-        return;
+        return NULL;
     }
 
     NoSuchFileError = PyErr_NewException("sssfile.NoSuchFileError", NULL, NULL);
@@ -205,4 +211,6 @@ PyMODINIT_FUNC initsssfile()
     PyDict_SetItemString(dict, "UnknownTypeError", UnknownTypeError);
 
     import_array();
+
+    return module;
 }

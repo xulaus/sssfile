@@ -12,7 +12,7 @@ file(GLOB sssfile_src "src/*.cpp" "src/*.h")
 project(libsssfile LANGUAGES CXX)
 find_package(RapidXML REQUIRED)
 include_directories(${RAPIDXML_INCLUDE_DIRS})
-add_library (sssfile  ${sssfile_src})
+add_library (sssfile ${sssfile_src})
 
 set_property(TARGET sssfile PROPERTY CXX_STANDARD 17)
 target_compile_definitions(sssfile PRIVATE EXPORTING)
