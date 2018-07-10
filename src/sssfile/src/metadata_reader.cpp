@@ -181,7 +181,8 @@ namespace SSSFile
         auto label_node = iter->cur_variable->first_node("label");
         if (label_node)
         {
-            return strlcpy(buffer, label_node->value(), length);
+            auto end_ptr = strncpy(buffer, label_node->value(), length);
+            return end_ptr == buffer ? strlen(buffer) : end_ptr - buffer;
         }
         else
         {
@@ -194,7 +195,8 @@ namespace SSSFile
         auto name_node = iter->cur_variable->first_node("name");
         if (name_node)
         {
-            return strlcpy(buffer, name_node->value(), length);
+            auto end_ptr = strncpy(buffer, name_node->value(), length);
+            return end_ptr == buffer ? strlen(buffer) : end_ptr - buffer;
         }
         else
         {
@@ -207,7 +209,8 @@ namespace SSSFile
         auto ident_attr = iter->cur_variable->first_attribute("ident");
         if (ident_attr)
         {
-            return strlcpy(buffer, ident_attr->value(), length);
+            auto end_ptr = strncpy(buffer, ident_attr->value(), length);
+            return end_ptr == buffer ? strlen(buffer) : end_ptr - buffer;
         }
         else
         {
