@@ -2,6 +2,7 @@
 #define __SSSFILE_METADATA_READER_
 
 #import "sssfile/column_metadata.h"
+#import "sssfile/error_codes.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -10,7 +11,7 @@ extern "C" {
 namespace SSSFile
 {
     struct column_iterator;
-    bool xml_file_to_column_iterator(const char *const_buffer, const size_t length, column_iterator **iter);
+    SSSError xml_file_to_column_iterator(const char *const_buffer, const size_t length, column_iterator **iter);
     void free_column_iterator(column_iterator *iter);
     bool next_column(column_iterator *iter);
 

@@ -134,25 +134,25 @@ namespace SSSFile
         }
     }
 
-    bool xml_file_to_column_iterator(const char *const_buffer, const size_t length, column_iterator **iter_ptr)
+    SSSError xml_file_to_column_iterator(const char *const_buffer, const size_t length, column_iterator **iter_ptr)
     {
         if (!iter_ptr)
-            return false;
+        {
+            return INVALID_ARGUMENTS;
+        }
 
         column_iterator *iter = static_cast<column_iterator *>(malloc(sizeof(column_iterator)));
         if (!iter)
         {
-            printf("OOM!\n");
-            return false;
+            return OOM;
         }
 
         iter->cur_variable = nullptr;
         iter->xml_string_buffer = static_cast<char *>(malloc(sizeof(char) * (length + 1)));
         if (iter->xml_string_buffer == nullptr)
         {
-            printf("OOM!\n");
             free_column_iterator(iter);
-            return false;
+            return OOM;
         }
 
         // @TODO RapidXML has non modifying version. we should use that
@@ -166,14 +166,13 @@ namespace SSSFile
 
         if (record == nullptr)
         {
-            printf("No Record!\n");
             free_column_iterator(iter);
-            return false;
+            return NO_RECORD_NODE;
         }
 
         iter->cur_variable = record->first_node("variable");
         *iter_ptr = iter;
-        return true;
+        return SUCCESS;
     }
 
     int find_column_label(column_iterator *iter, char *buffer, size_t length)

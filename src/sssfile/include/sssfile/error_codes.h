@@ -15,6 +15,9 @@ namespace SSSFile
         BUFFER_WRONG_SIZE,
         INVALID_NUMBER,
         INVALID_UTF8_STRING,
+        OOM,
+        INVALID_ARGUMENTS,
+        NO_RECORD_NODE,
         SSSERROR_COUNT
     };
 

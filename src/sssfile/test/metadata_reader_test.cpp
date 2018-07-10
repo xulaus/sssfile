@@ -27,13 +27,13 @@ const char small_xmldata[] = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 TEST_CASE("Can parse to column_iterator", "[xml]")
 {
     column_iterator *iter = nullptr;
-    REQUIRE(xml_file_to_column_iterator(small_xmldata, static_strlen(small_xmldata) - 1, &iter));
+    REQUIRE(xml_file_to_column_iterator(small_xmldata, static_strlen(small_xmldata) - 1, &iter) == SUCCESS);
 }
 
 TEST_CASE("column_iterator can read column name", "[xml]")
 {
     column_iterator *iter = nullptr;
-    REQUIRE(xml_file_to_column_iterator(small_xmldata, static_strlen(small_xmldata) - 1, &iter));
+    REQUIRE(xml_file_to_column_iterator(small_xmldata, static_strlen(small_xmldata) - 1, &iter) == SUCCESS);
 
     char expected_name[] = "respondent_id";
 
@@ -51,7 +51,7 @@ TEST_CASE("column_iterator can read column name", "[xml]")
 TEST_CASE("column_iterator can read column ident", "[xml]")
 {
     column_iterator *iter = nullptr;
-    REQUIRE(xml_file_to_column_iterator(small_xmldata, static_strlen(small_xmldata) - 1, &iter));
+    REQUIRE(xml_file_to_column_iterator(small_xmldata, static_strlen(small_xmldata) - 1, &iter) == SUCCESS);
 
     char expected_ident[] = "00001";
 
@@ -69,7 +69,7 @@ TEST_CASE("column_iterator can read column ident", "[xml]")
 TEST_CASE("column_iterator can read column label", "[xml]")
 {
     column_iterator *iter = nullptr;
-    REQUIRE(xml_file_to_column_iterator(small_xmldata, static_strlen(small_xmldata) - 1, &iter));
+    REQUIRE(xml_file_to_column_iterator(small_xmldata, static_strlen(small_xmldata) - 1, &iter) == SUCCESS);
 
     char expected_label[] = "Respondent";
 
@@ -87,7 +87,7 @@ TEST_CASE("column_iterator can read column label", "[xml]")
 TEST_CASE("column_iterator can read column details", "[xml]")
 {
     column_iterator *iter = nullptr;
-    REQUIRE(xml_file_to_column_iterator(small_xmldata, static_strlen(small_xmldata) - 1, &iter));
+    REQUIRE(xml_file_to_column_iterator(small_xmldata, static_strlen(small_xmldata) - 1, &iter) == SUCCESS);
 
     sss_column_metadata column_details;
     REQUIRE(find_column_details(iter, &column_details));
