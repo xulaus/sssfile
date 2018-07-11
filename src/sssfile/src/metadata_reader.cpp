@@ -10,110 +10,108 @@
 
 namespace SSSFile
 {
-    bool unpack_position_node(const char *variable_name, rapidxml::xml_node<> *position, unsigned int &start,
-                              unsigned int &end)
+    SSSError unpack_position_node(rapidxml::xml_node<> *position, unsigned int &start, unsigned int &end)
     {
+        if (position->next_sibling("position"))
+        {
+            return VARIABLE_HAS_TOO_MANY_POSITION_NODES;
+        }
         auto start_node = (position) != nullptr ? position->first_attribute("start") : nullptr;
         auto end_node = (position) != nullptr ? position->first_attribute("finish") : nullptr;
         if ((start_node == nullptr) || (end_node == nullptr))
         {
-            printf("Variable '%s' has an invalid position definition\n", variable_name);
-            return false;
+            return VARIABLE_HAS_NO_POSITION_NODE;
         }
 
         if (!to_numeric(start_node->value(), start) || !to_numeric(end_node->value(), end))
         {
-            printf("Variable '%s' has an invalid position definition\n", variable_name);
-            return false;
+            return VARIABLE_HAS_INVALID_POSITION_NODE;
         }
-        return true;
+        return SUCCESS;
     }
 
-    bool parse_quantity_column(const char *variable_name, rapidxml::xml_node<> &variable, sss_column_metadata &column)
+    SSSError parse_quantity_column(rapidxml::xml_node<> &variable, sss_column_metadata &column)
     {
         auto position = variable.first_node("position");
         unsigned int start, end;
-        if (!unpack_position_node(variable_name, position, start, end))
+        auto position_unpack = unpack_position_node(position, start, end);
+        if (position_unpack != SUCCESS)
         {
-            return false;
+            return position_unpack;
         }
 
         column.offset = start;
         column.size = end - start;
         column.type = sss_column_metadata::TYPE_DOUBLE;
-        return true;
+        return SUCCESS;
     }
 
-    bool parse_character_column(const char *variable_name, rapidxml::xml_node<> &variable, sss_column_metadata &column)
+    SSSError parse_character_column(rapidxml::xml_node<> &variable, sss_column_metadata &column)
     {
         auto position = variable.first_node("position");
 
         unsigned int start, end;
-        if (!unpack_position_node(variable_name, position, start, end))
+        auto position_unpack = unpack_position_node(position, start, end);
+        if (position_unpack != SUCCESS)
         {
-            return false;
+            return position_unpack;
         }
 
         column.offset = start;
         column.size = end - start;
         column.type = sss_column_metadata::TYPE_UTF8;
-        return true;
+        return SUCCESS;
     }
 
-    bool parse_single_column(const char *variable_name, rapidxml::xml_node<> &variable, sss_column_metadata &column)
+    SSSError parse_single_column(rapidxml::xml_node<> &variable, sss_column_metadata &column)
     {
         auto position = variable.first_node("position");
 
         unsigned int start, end;
-        if (!unpack_position_node(variable_name, position, start, end))
+        auto position_unpack = unpack_position_node(position, start, end);
+        if (position_unpack != SUCCESS)
         {
-            return false;
+            return position_unpack;
         }
 
         column.offset = start;
         column.size = end - start;
         column.type = sss_column_metadata::TYPE_INT32;
-        return true;
+        return SUCCESS;
     }
 
-    bool column_from_xml(rapidxml::xml_node<> &variable, sss_column_metadata &column)
+    SSSError column_from_xml(rapidxml::xml_node<> &variable, sss_column_metadata &column)
     {
-        auto name_node = variable.first_node("name");
-        if (name_node == nullptr)
-        {
-            printf("No name on variable\n");
-            return false;
-        }
-
-        auto name = name_node->value();
         auto type = variable.first_attribute("type");
         if (type == nullptr)
         {
-            printf("Variable '%s' has no type declared\n", name);
-            return false;
+            return VARIABLE_HAS_NO_TYPE_ATTR;
+        }
+
+        if (type->next_attribute("type"))
+        {
+            return VARIABLE_HAS_TOO_MANY_TYPE_ATTRS;
         }
 
         if (strcmp("character", type->value()) == 0)
         {
-            return parse_character_column(name, variable, column);
+            return parse_character_column(variable, column);
         }
         else if (strcmp("quantity", type->value()) == 0)
         {
-            return parse_quantity_column(name, variable, column);
+            return parse_quantity_column(variable, column);
         }
         else if (strcmp("single", type->value()) == 0)
         {
-            return parse_quantity_column(name, variable, column);
+            return parse_quantity_column(variable, column);
         }
         else if (strcmp("multiple", type->value()) == 0)
         {
-            printf("Variable '%s' is multiple select. These are not currently supported\n", name);
-            return true;
+            return UNKNOWN_TYPE;
         }
         else
         {
-            printf("Variable '%s' is of unknown type %s\n", name, type->value());
-            return false;
+            return UNKNOWN_TYPE;
         }
     }
 
@@ -217,17 +215,28 @@ namespace SSSFile
         }
     }
 
-    bool find_column_details(column_iterator *iter, sss_column_metadata *col)
+    SSSError find_column_details(column_iterator *iter, sss_column_metadata *col)
     {
-        bool bad_args = !iter || !col;
-        return !bad_args && column_from_xml(*iter->cur_variable, *col);
+        if (!iter || !col)
+        {
+            return INVALID_ARGUMENTS;
+        }
+        return column_from_xml(*iter->cur_variable, *col);
     }
 
-    bool next_column(column_iterator *iter)
+    SSSError next_column(column_iterator *iter)
     {
-        if (!iter || !iter->cur_variable)
-            return false;
-        iter->cur_variable = iter->cur_variable->next_sibling();
-        return iter->cur_variable != nullptr;
+        if (!iter)
+        {
+            return INVALID_ARGUMENTS;
+        }
+
+        if (!iter->cur_variable)
+        {
+            return END_OF_FILE;
+        }
+
+        iter->cur_variable = iter->cur_variable->next_sibling("variable");
+        return iter->cur_variable != nullptr ? SUCCESS : END_OF_FILE;
     }
 } // namespace SSSFile

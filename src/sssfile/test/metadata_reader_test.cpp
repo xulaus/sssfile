@@ -90,7 +90,7 @@ TEST_CASE("column_iterator can read column details", "[xml]")
     REQUIRE(xml_file_to_column_iterator(small_xmldata, static_strlen(small_xmldata) - 1, &iter) == SUCCESS);
 
     sss_column_metadata column_details;
-    REQUIRE(find_column_details(iter, &column_details));
+    REQUIRE(find_column_details(iter, &column_details) == SUCCESS);
     REQUIRE(column_details.type == sss_column_metadata::TYPE_UTF8);
     REQUIRE(column_details.size == 2);
     REQUIRE(column_details.offset == 1);

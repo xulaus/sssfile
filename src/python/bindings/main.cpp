@@ -160,10 +160,11 @@ static PyObject *from_xmlfile(PyObject *dummy, PyObject *args)
     do
     {
         SSSFile::sss_column_metadata column_details;
-        if (find_column_details(iter, &column_details))
+        char buf[255];
+        size_t length = find_column_name(iter, buf, 255);
+        SSSFile::SSSError iter_err = find_column_details(iter, &column_details);
+        if (iter_err == SSSFile::SUCCESS)
         {
-            char buf[255];
-            size_t length = find_column_name(iter, buf, 255);
             if (length > 0)
             {
                 printf("'%.*s' is size %lu\n", (int) length, buf, column_details.size);
@@ -173,7 +174,19 @@ static PyObject *from_xmlfile(PyObject *dummy, PyObject *args)
                 printf("Unnamed column is size %lu\n", column_details.size);
             }
         }
-    } while (SSSFile::next_column(iter));
+        else
+        {
+            auto error = SSSFile::get_error_message(iter_err);
+            if (length > 0)
+            {
+                printf("Error reading '%.*s': %s\n", (int) length, buf, error);
+            }
+            else
+            {
+                printf("Error reading unnamed column: %s\n", error);
+            }
+        }
+    } while (SSSFile::next_column(iter) == SSSFile::SUCCESS);
 
     SSSFile::free_column_iterator(iter);
     free(buffer);
